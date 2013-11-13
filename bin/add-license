@@ -1,0 +1,11 @@
+#!/bin/bash
+FILES=`find bin src tests examples -type f -name *.php -print | xargs grep -iL "This file is part of AlphaRPC"`
+
+for f in $FILES
+do
+    echo $f;
+    sed -i -f bin/add-license.sed $f
+    git add $f
+done
+
+git commit $@

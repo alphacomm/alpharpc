@@ -1,0 +1,34 @@
+imports:
+  - { resource: alpharpc_config.yml }
+  - { resource: streams.yml }
+  - { resource: handlers.yml }
+
+services:
+  client_handler_logger:
+    class: Monolog\Logger
+    arguments:
+      - client-handler
+    calls:
+      - [pushHandler, ["@client_handler_logger_stream"]]
+
+  client_handler_logger_stream:
+    class: Monolog\Handler\StreamHandler
+    arguments:
+      - "%logger_client_handler_file%"
+      - "%logger_client_handler_level%"
+
+  worker_handler_logger:
+    class: Monolog\Logger
+    arguments:
+      - worker-handler
+    calls:
+      - [pushHandler, ["@worker_handler_logger_stream"]]
+
+  worker_handler_logger_stream:
+    class: Monolog\Handler\StreamHandler
+    arguments:
+      - "%logger_worker_handler_file%"
+      - "%logger_worker_handler_level%"
+
+  storage:
+    class: AlphaRPC\Manager\Storage\MemcacheStorage

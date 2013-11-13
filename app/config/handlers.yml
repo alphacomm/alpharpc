@@ -1,0 +1,35 @@
+parameters:
+  poll_in: 1
+
+services:
+  handler_worker:
+    class: AlphaRPC\Manager\WorkerHandler\WorkerHandler
+    arguments:
+      - "@stream_worker_handler_host"
+      - "@stream_worker_handler_status_host"
+      - "@stream_client_handler_worker_handler_host"
+      - "@storage"
+      - "@worker_handler_logger"
+
+  handler_worker_poll:
+    class: ZMQPoll
+    calls:
+      - [add, ["@socket_worker_handler_host", "%poll_in%"]]
+      - [add, ["@socket_worker_handler_status_host", "%poll_in%"]]
+      - [add, ["@socket_client_handler_worker_handler_host", "%poll_in%"]]
+
+  handler_client:
+    class: AlphaRPC\Manager\ClientHandler\ClientHandler
+    arguments:
+      - "@stream_client_handler_host"
+      - "@stream_client_handler_worker_handler_client"
+      - "@stream_worker_handler_status_client"
+      - "@storage"
+      - "@client_handler_logger"
+
+  handler_client_poll:
+    class: ZMQPoll
+    calls:
+      - [add, ["@socket_client_handler_host", "%poll_in%"]]
+      - [add, ["@socket_client_handler_worker_handler_client", "%poll_in%"]]
+      - [add, ["@socket_worker_handler_status_client", "%poll_in%"]]

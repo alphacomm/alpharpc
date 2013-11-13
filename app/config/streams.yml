@@ -1,0 +1,41 @@
+imports:
+  - { resource: sockets.yml }
+
+parameters:
+  stream_class: AlphaRPC\Common\Socket\Stream
+
+services:
+  stream_worker_handler_host:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_worker_handler_host"
+
+  stream_worker_handler_client:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_worker_handler_client"
+
+  stream_worker_handler_status_host:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_worker_handler_status_host"
+
+  stream_worker_handler_status_client:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_worker_handler_status_client"
+
+  stream_client_handler_host:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_client_handler_host"
+
+  stream_client_handler_worker_handler_host:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_client_handler_worker_handler_host"
+
+  stream_client_handler_worker_handler_client:
+    class: "%stream_class%"
+    arguments:
+      - "@socket_client_handler_worker_handler_client"

@@ -1,0 +1,36 @@
+#!/bin/sh
+
+setupScreen() {
+    TRUE=`which true`
+    SCREEN_NAME=${SCREEN_NAME:-alpharpc}
+    screen -d -m -S $SCREEN_NAME -t shell -s /bin/bash
+    sleep 1
+
+
+    if [ -z "$SCREEN_HARDSTATUS" ]; then
+        SCREEN_HARDSTATUS='%{= .} %-Lw%{= .}%> %n%f %t*%{= .}%+Lw%< %-=%{g}(%{d}%H/%l%{g})'
+    fi
+    screen -r $SCREEN_NAME -X hardstatus alwayslastline "$SCREEN_HARDSTATUS"
+    screen -r $SCREEN_NAME -X setenv PROMPT_COMMAND $TRUE
+}
+
+# Helper to launch a service in a named screen
+# screen_it service "command-line"
+screen_it() {
+    SCREEN_NAME=${SCREEN_NAME:-alpharpc}
+    screen -S $SCREEN_NAME -X screen -t $1
+
+    # sleep to allow bash to be ready to be send the command - we are
+    # creating a new window in screen and then sends characters, so if
+    # bash isn't running by the time we send the command, nothing happens
+    sleep 1.5
+
+    NL=`echo -ne '\015'`
+    screen -S $SCREEN_NAME -p $1 -X stuff "$2 || echo \"$1 failed to start\" | tee \"$SERVICE_DIR/$SCREEN_NAME/$1.failure\"$NL"
+}
+
+setupScreen
+screen_it worker-handler bin/alpharpc-worker-handler
+sleep 1
+screen_it helloworld-worker examples/worker-reverse.php
+screen_it client-handler bin/alpharpc-client-handler

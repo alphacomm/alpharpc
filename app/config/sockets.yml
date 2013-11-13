@@ -1,0 +1,62 @@
+parameters:
+  socket_class: AlphaRPC\Common\Socket\Socket
+
+services:
+  socket_factory:
+    class: AlphaRPC\Common\Socket\Factory
+
+  socket_worker_handler_host:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createRouter
+    arguments:
+      - "bind"
+      - "%worker_handler%"
+
+  socket_worker_handler_client:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createRequest
+    arguments:
+      - "connect"
+      - "%worker_handler%"
+
+  socket_worker_handler_status_host:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createPublisher
+    arguments:
+      - "bind"
+      - "%worker_handler_status%"
+
+  socket_worker_handler_status_client:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createSubscriber
+    arguments:
+      - "connect"
+      - "%worker_handler_status%"
+
+  socket_client_handler_host:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createReply
+    arguments:
+      - "bind"
+      - "%client_handler%"
+
+  socket_client_handler_worker_handler_host:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createReply
+    arguments:
+      - "bind"
+      - "%client_handler_worker_handler%"
+
+  socket_client_handler_worker_handler_client:
+    class: "%socket_class%"
+    factory_service: socket_factory
+    factory_method: createRequest
+    arguments:
+      - "connect"
+      - "%client_handler_worker_handler%"

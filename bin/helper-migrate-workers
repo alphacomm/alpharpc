@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+if ('cli' !== php_sapi_name()) {
+    echo 'This helper can only be run from the console.'.PHP_EOL;
+    echo 'Usage: '. $command.' <worker1.php> [worker2.php] [...]'.PHP_EOL;
+    exit(1);
+}
+
+call_user_func(function($cli_arguments) {
+    $command = array_shift($cli_arguments);
+    if (!isset($cli_arguments[0])) {
+        echo 'ERROR: No file(s) given.'.PHP_EOL;
+        echo 'Usage: '. $command.' <worker1.php> [worker2.php] [...]'.PHP_EOL;
+        exit(1);
+    }
+
+    do {
+        $file = array_shift($cli_arguments);
+        if (!is_readable($file) || !is_writable($file)) {
+            fwrite(STDERR, 'Cannot read or write file "'.$file.'".');
+            continue;
+        }
+
+        $new_contents = str_replace('->addService', '->addAction', file_get_contents($file));
+        file_put_contents($file, $new_contents);
+    } while(0 != count($cli_arguments));
+
+}, $_SERVER['argv']);
