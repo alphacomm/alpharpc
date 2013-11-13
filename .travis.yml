@@ -2,8 +2,13 @@ before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq libzmq3-dev php-pear php5-dev
  - echo "" | sudo pecl install zmq-beta
+ - echo "extension=zmq.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+ - sudo pecl install memcached
+ - echo "extension=memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+ - php -m
 
 before_script:
+ - composer selfupdate
  - composer install
 
 language: php
