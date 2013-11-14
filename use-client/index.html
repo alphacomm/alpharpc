@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> - AlphaRPC - Remote procedure call libraries written in PHP, with ZeroMQ.</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://alphacomm.github.io/alpharpc/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="http://alphacomm.github.io/alpharpc/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://alphacomm.github.io/alpharpc/components/highlightjs/styles/github.css" />
+    <style type="text/css">
+        body { margin: 50px 0}
+        h1, h2, h3 { padding-top: 80px; margin-top: -45px; }
+        .sidebar { margin-top: 20px; width: 258px; position: fixed }
+        .sidebar li ul { display: none }
+        .no-js .sidebar li ul, .sidebar li.active > ul { display: block }
+        .sidebar li li a { padding: 3px 30px; font-size: 13px }
+        .sidebar li li li a { padding: 3px 45px; font-size: 11px }
+        .active > a { font-weight: bold }
+    </style>
+</head>
+<body class="no-js">
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="http://alphacomm.github.io/alpharpc/" class="navbar-brand">AlphaRPC</a>
+            </div>
+            <nav>
+                <ul class="nav navbar-nav">
+                    <li><a href="http://alphacomm.github.io/alpharpc/getting-started">Getting started</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="https://github.com/alphacomm/alpharpc">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container"><div class="row">
+        <div class="col-md-3">
+            <div class="sidebar" role="complementary">
+                <ul class="nav"><li><a href="#Using-the-Client">Using the Client</a><ul class="nav"><li><a href="#Configure-the-Client">Configure the Client</a></li><li><a href="#Perform-a-request">Perform a request</a><ul class="nav"><li><a href="#Synchronous-request">Synchronous request</a></li><li><a href="#Asynchronous-request">Asynchronous request</a></li><li><a href="#What-about-that--code--waitForIt--code--variable-">What about that <code>$waitForIt</code> variable?</a></li></ul></li></ul></li></ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h1  id="Using-the-Client">Using the Client</h1>
+
+<p>Using the AlphaRPC client is quite simple. It consists of three steps:</p>
+
+<ul>
+<li>Configure the Client.</li>
+<li>Perform a request.</li>
+<li>(Optional:) Fetch the response.</li>
+</ul>
+
+<p>Also see check the <a href="https://github.com/alphacomm/alpharpc/blob/master/examples/client-reverse.php">example client</a>.</p>
+
+<h2  id="Configure-the-Client">Configure the Client</h2>
+
+<p>You start with configuring the Client:</p>
+
+<pre><code class="php">use AlphaRPC\Client\Client;
+
+$client = new Client();
+
+// Tell it where to find the Client Handler
+$client-&gt;addManager('tcp://127.0.0.1:61002');
+</code></pre>
+
+<h2  id="Perform-a-request">Perform a request</h2>
+
+<p>Then, you have to perform a request. You have two choices here:</p>
+
+<ul>
+<li>A synchronous request</li>
+<li>An asynchronous request</li>
+</ul>
+
+<h3  id="Synchronous-request">Synchronous request</h3>
+
+<p>In case of a synchronous request, you do:</p>
+
+<pre><code class="php">$params = array('Hello World!');
+$response = $client-&gt;request('reverse', $params);
+</code></pre>
+
+<p>Now, you will have the response in the <code>$response</code> variable.</p>
+
+<h3  id="Asynchronous-request">Asynchronous request</h3>
+
+<p>In case of an asynchronous request, you need two steps:</p>
+
+<pre><code class="php">$params = array('Hello World!');
+
+// Start the request.
+$request = $client-&gt;startRequest('reverse', $params);
+
+// Do something else.
+sleep(1);
+
+// Fetch the response (and wait for it if it is not yet available).
+$waitForIt = true;
+$response = $client-&gt;fetchResponse($request, $waitForIt);
+</code></pre>
+
+<p>Now, again you will have the response in the <code>$response</code> variable again.</p>
+
+<h3  id="What-about-that--code--waitForIt--code--variable-">What about that <code>$waitForIt</code> variable?</h3>
+
+<p>Now, you may have noticed that we included a <code>$waitForIt</code> parameter when fetching the response. With this flag, you can indicate whether you want to wait until the response is available.</p>
+
+<p>If you set this parameters to <code>false</code> and the response is not yet available, you will receive a <code>AlphaRPC\Common\TimeoutException</code>.</p>
+
+<p>You can safely try to fetch the response again.</p>
+
+<p>NOTE: fetching a response is <strong>not necessary</strong>! If you just want to send a request to a Worker, without caring about the result (in the client), you may choose not to fetch the response. That effectively makes your request a background taks.</p>
+        </div>
+    </div></div>
+    <script src="http://alphacomm.github.io/alpharpc/components/jquery/jquery.min.js"></script>
+    <script src="http://alphacomm.github.io/alpharpc/components/highlightjs/highlight.pack.js"></script>
+    <script src="http://alphacomm.github.io/alpharpc/components/bootstrap/js/bootstrap.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+    var navHeight = $('.navbar').outerHeight(true)+10;
+    $('body').scrollspy({ target: '.sidebar', offset: navHeight}).removeClass('no-js');
+    $('.sidebar').affix();
+    </script>
+</body>
+</html>
