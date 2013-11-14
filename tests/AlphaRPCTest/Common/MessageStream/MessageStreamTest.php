@@ -9,9 +9,7 @@
 namespace AlphaRPCTest\Common\MessageStream;
 
 use AlphaRPC\Common\MessageStream\ArrayStream;
-use AlphaRPC\Common\MessageStream\MessageEvent;
-use AlphaRPC\Common\MessageStream\StreamInterface;
-use AlphaRPC\Manager\Protocol\StorageNotFound;
+use AlphaRPC\Manager\Protocol\QueueStatusRequest;
 
 class MessageStreamTest extends \PHPUnit_Framework_TestCase
 {
@@ -27,7 +25,7 @@ class MessageStreamTest extends \PHPUnit_Framework_TestCase
 
     public function testReadingAMessageWorks()
     {
-        $request = new StorageNotFound('12345');
+        $request = new QueueStatusRequest();
 
         $this->stream->addMessageToRead($request);
         $read = $this->stream->read();
