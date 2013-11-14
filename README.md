@@ -1,5 +1,7 @@
 # AlphaRPC
 
+[![Build Status](https://travis-ci.org/alphacomm/alpharpc.png?branch=master)](https://travis-ci.org/alphacomm/alpharpc)
+
 AlphaRPC is an RPC daemon based on ZeroMQ that can be used to distribute
 workload over one or multiple servers.
 
