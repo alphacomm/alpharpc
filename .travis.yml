@@ -16,3 +16,9 @@ php:
  - 5.5
  - 5.4
  - 5.3
+
+
+tifications:
+  email:
+    on_success: change
+    on_failure: change
