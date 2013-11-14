@@ -53,5 +53,5 @@ To provide your own text to be reversed, add it to the command:
 
 Now you have a working AlphaRPC installation. You are ready to perform some common tasks:
 
+ * [Use the AlphaRPC Client in your project](use-client)
  * [Create your own worker](create-a-worker)
- * [Integrate the AlphaRPC Client in your project](integrate-client)
