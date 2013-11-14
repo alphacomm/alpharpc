@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> - AlphaRPC - Remote procedure call libraries written in PHP, with ZeroMQ.</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/components/highlightjs/styles/github.css" />
+    <style type="text/css">
+        body { margin: 50px 0}
+        h1, h2, h3 { padding-top: 80px; margin-top: -45px; }
+        .sidebar { margin-top: 20px; width: 258px; position: fixed }
+        .sidebar li ul { display: none }
+        .no-js .sidebar li ul, .sidebar li.active > ul { display: block }
+        .sidebar li li a { padding: 3px 30px; font-size: 13px }
+        .sidebar li li li a { padding: 3px 45px; font-size: 11px }
+        .active > a { font-weight: bold }
+        .intro {padding: 140px 0}
+        .intro h1 { font-size: 100px }
+        .intro p { color: #666666; font-size: 30px }
+    </style>
+</head>
+<body class="no-js">
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="/" class="navbar-brand">AlphaRPC</a>
+            </div>
+            <nav>
+                <ul class="nav navbar-nav">
+                    <li><a href="/getting-started">Getting started</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="https://github.com/alphacomm/alpharpc">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <div class="intro">
+    <h1>AlphaRPC</h1>
+    <p class="lead">Remote procedure call libraries written in PHP, with ZeroMQ.</p>
+    <p>
+        <a class="btn btn-primary btn-lg" href="https://github.com/alphacomm/alpharpc">
+            Download AlphaRPC
+        </a>
+        <a class="btn btn-default btn-lg" href="/getting-started">
+            Getting started
+        </a>
+    </p>
+</div>    </div>
+    <script src="/components/jquery/jquery.min.js"></script>
+    <script src="/components/highlightjs/highlight.pack.js"></script>
+    <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+    var navHeight = $('.navbar').outerHeight(true)+10;
+    $('body').scrollspy({ target: '.sidebar', offset: navHeight}).removeClass('no-js');
+    $('.sidebar').affix();
+    </script>
+</body>
+</html>

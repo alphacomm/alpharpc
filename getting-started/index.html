@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> - AlphaRPC - Remote procedure call libraries written in PHP, with ZeroMQ.</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/components/highlightjs/styles/github.css" />
+    <style type="text/css">
+        body { margin: 50px 0}
+        h1, h2, h3 { padding-top: 80px; margin-top: -45px; }
+        .sidebar { margin-top: 20px; width: 258px; position: fixed }
+        .sidebar li ul { display: none }
+        .no-js .sidebar li ul, .sidebar li.active > ul { display: block }
+        .sidebar li li a { padding: 3px 30px; font-size: 13px }
+        .sidebar li li li a { padding: 3px 45px; font-size: 11px }
+        .active > a { font-weight: bold }
+    </style>
+</head>
+<body class="no-js">
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="/" class="navbar-brand">AlphaRPC</a>
+            </div>
+            <nav>
+                <ul class="nav navbar-nav">
+                    <li><a href="/getting-started">Getting started</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="https://github.com/alphacomm/alpharpc">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container"><div class="row">
+        <div class="col-md-3">
+            <div class="sidebar" role="complementary">
+                <ul class="nav"><li><a href="#Getting-Started">Getting Started</a><ul class="nav"><li><a href="#Installing-ZeroMQ-and-php-zmq">Installing ZeroMQ and php-zmq</a><ul class="nav"><li><a href="#On-Debian">On Debian</a></li></ul></li><li><a href="#Install-Composer">Install Composer</a></li><li><a href="#Installing-AlphaRPC-and-Composer">Installing AlphaRPC and Composer</a></li><li><a href="#Starting-AlphaRPC">Starting AlphaRPC</a></li><li><a href="#First-request">First request</a></li><li><a href="#Done-">Done!</a></li></ul></li></ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h1  id="Getting-Started">Getting Started</h1>
+
+<p>AlphaRPC is a library for performing remote procedure calls from PHP.
+It uses ZeroMQ to communicate with the different parts.</p>
+
+<h2  id="Installing-ZeroMQ-and-php-zmq">Installing ZeroMQ and php-zmq</h2>
+
+<p>To get AlphaRPC working, you first need to install libzmq (the ZeroMQ library) and php-zmq (the PHP extension).
+<code>screen</code> is used to start all the <a href="documentation#handlers">handlers</a> at once.</p>
+
+<h3  id="On-Debian">On Debian</h3>
+
+<pre><code class="bash">sudo apt-get install libzmq-dev php-pear php5-dev screen
+sudo pear channel-discover pear.zero.mq
+sudo pecl install pear.zero.mq/zmq-beta
+sudo echo 'extension=zmq.so' &gt; /etc/php5/conf.d/zmq.ini
+</code></pre>
+
+<h2  id="Install-Composer">Install Composer</h2>
+
+<p>AlphaRPC uses <a href="https://getcomposer.org/">composer</a> for its dependency management.</p>
+
+<h2  id="Installing-AlphaRPC-and-Composer">Installing AlphaRPC and Composer</h2>
+
+<p>Installing AlphaRPC is easy: just clone the repository and run composer.</p>
+
+<pre><code class="bash">git clone https://github.com/alphacomm/alpharpc.git
+cd alpharpc
+curl -sS https://getcomposer.org/installer | php
+./composer.phar install
+</code></pre>
+
+<h2  id="Starting-AlphaRPC">Starting AlphaRPC</h2>
+
+<p>For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like [supervisor](For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like <a href="http://supervisord.org/">supervisord</a>.</p>
+
+<p><code>bin/start-handlers</code></p>
+
+<h2  id="First-request">First request</h2>
+
+<p>If all went well, AlphaRPC is running now. To perform the first request, run:</p>
+
+<p><code>examples/client-reverse.php</code></p>
+
+<p>To provide your own text to be reversed, add it to the command:</p>
+
+<p><code>examples/client-reverse.php 'hello world'</code></p>
+
+<h2  id="Done-">Done!</h2>
+
+<p>Now you have a working AlphaRPC installation. You are ready to perform some common tasks:</p>
+
+<ul>
+<li><a href="create-a-worker">Create your own worker</a></li>
+<li><a href="integrate-client">Integrate the AlphaRPC Client in your project</a></li>
+</ul>
+        </div>
+    </div></div>
+    <script src="/components/jquery/jquery.min.js"></script>
+    <script src="/components/highlightjs/highlight.pack.js"></script>
+    <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+    var navHeight = $('.navbar').outerHeight(true)+10;
+    $('body').scrollspy({ target: '.sidebar', offset: navHeight}).removeClass('no-js');
+    $('.sidebar').affix();
+    </script>
+</body>
+</html>
