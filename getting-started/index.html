@@ -4,9 +4,9 @@
     <title> - AlphaRPC - Remote procedure call libraries written in PHP, with ZeroMQ.</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="http://alphacomm.github.io/alpharpc/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-    <link href="http://alphacomm.github.io/alpharpc/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="http://alphacomm.github.io/alpharpc/components/highlightjs/styles/github.css" />
+    <link href="http://alpharpc.net/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="http://alpharpc.net/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="http://alpharpc.net/components/highlightjs/styles/github.css" />
     <style type="text/css">
         body { margin: 50px 0}
         h1, h2, h3 { padding-top: 80px; margin-top: -45px; }
@@ -22,11 +22,11 @@
     <header class="navbar navbar-default navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
-                <a href="http://alphacomm.github.io/alpharpc/" class="navbar-brand">AlphaRPC</a>
+                <a href="http://alpharpc.net/" class="navbar-brand">AlphaRPC</a>
             </div>
             <nav>
                 <ul class="nav navbar-nav">
-                    <li><a href="http://alphacomm.github.io/alpharpc/getting-started">Getting started</a></li>
+                    <li><a href="http://alpharpc.net/getting-started">Getting started</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="https://github.com/alphacomm/alpharpc">GitHub</a></li>
@@ -77,31 +77,34 @@ curl -sS https://getcomposer.org/installer | php
 
 <p>For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like [supervisor](For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like <a href="http://supervisord.org/">supervisord</a>.</p>
 
-<p><code>bin/start-handlers</code></p>
+<pre><code class="bash">bin/start-handlers
+</code></pre>
 
 <h2  id="First-request">First request</h2>
 
 <p>If all went well, AlphaRPC is running now. To perform the first request, run:</p>
 
-<p><code>examples/client-reverse.php</code></p>
+<pre><code class="bash">examples/client-reverse.php
+</code></pre>
 
 <p>To provide your own text to be reversed, add it to the command:</p>
 
-<p><code>examples/client-reverse.php 'hello world'</code></p>
+<pre><code class="bash">examples/client-reverse.php 'hello world'
+</code></pre>
 
 <h2  id="Done-">Done!</h2>
 
 <p>Now you have a working AlphaRPC installation. You are ready to perform some common tasks:</p>
 
 <ul>
-<li><a href="http://alphacomm.github.io/alpharpc/use-client">Use the AlphaRPC Client in your project</a></li>
-<li><a href="http://alphacomm.github.io/alpharpc/create-a-worker">Create your own worker</a></li>
+<li><a href="http://alpharpc.net/use-client/">Use the AlphaRPC Client in your project</a></li>
+<li><a href="http://alpharpc.net/create-a-worker/">Create your own worker</a></li>
 </ul>
         </div>
     </div></div>
-    <script src="http://alphacomm.github.io/alpharpc/components/jquery/jquery.min.js"></script>
-    <script src="http://alphacomm.github.io/alpharpc/components/highlightjs/highlight.pack.js"></script>
-    <script src="http://alphacomm.github.io/alpharpc/components/bootstrap/js/bootstrap.min.js"></script>
+    <script src="http://alpharpc.net/components/jquery/jquery.min.js"></script>
+    <script src="http://alpharpc.net/components/highlightjs/highlight.pack.js"></script>
+    <script src="http://alpharpc.net/components/bootstrap/js/bootstrap.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     <script>
     var navHeight = $('.navbar').outerHeight(true)+10;
