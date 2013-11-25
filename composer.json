@@ -1,6 +1,7 @@
 {
     "name": "alphacomm/alpharpc",
     "description": "AlphaRPC is a daemon that manages workers and clients.",
+    "homepage": "http://alpharpc.net/",
     "license": "BSD-3-Clause",
     "type": "library",
     "require": {
