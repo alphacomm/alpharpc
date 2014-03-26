@@ -8,6 +8,7 @@
 
 namespace AlphaRPC\Common\Socket;
 
+use ReflectionClass;
 use ZMQ;
 use ZMQContext;
 use ZMQSocket;
@@ -25,6 +26,7 @@ class Factory
     protected $context = null;
 
     /**
+     * Default options for this Factory instance.
      *
      * @var array
      */
@@ -44,6 +46,9 @@ class Factory
      */
     public function __construct(array $options = array())
     {
+        if (!isset($options[ZMQ::SOCKOPT_LINGER])) {
+            $options[ZMQ::SOCKOPT_LINGER] = 0;
+        }
         $this->setOptions($options);
     }
 
