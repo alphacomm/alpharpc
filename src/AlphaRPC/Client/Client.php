@@ -12,12 +12,14 @@
 
 namespace AlphaRPC\Client;
 
+use AlphaRPC\Client\Exception\InvalidResponseException;
 use AlphaRPC\Client\Protocol\ExecuteRequest;
 use AlphaRPC\Client\Protocol\ExecuteResponse;
 use AlphaRPC\Client\Protocol\FetchRequest;
 use AlphaRPC\Client\Protocol\FetchResponse;
 use AlphaRPC\Client\Protocol\TimeoutResponse;
 use AlphaRPC\Common\AlphaRPC;
+use AlphaRPC\Common\Protocol\Message\MessageInterface;
 use AlphaRPC\Common\Serialization\SerializerInterface;
 use AlphaRPC\Common\Socket\Socket;
 use AlphaRPC\Common\TimeoutException;
@@ -406,6 +408,7 @@ class Client implements LoggerAwareInterface
      * @param string       $manager
      * @param FetchRequest $request
      *
+     * @return MessageInterface
      * @throws InvalidResponseException
      * @throws RuntimeException
      */
