@@ -64,16 +64,16 @@ class PrepareCustomConfig extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->copy('zm_config.yml', $output);
+        $this->copy('alpharpc_config.yml', $output);
 
         $customResources = $input->getOption('custom-resources');
         if ($customResources) {
-            $this->copy('zm_resources.yml', $output);
+            $this->copy('alpharpc_resources.yml', $output);
         }
 
         $output->writeln(array(
             'Done.',
-            '<info>You can now edit zm_*.yml config files.</info>',
+            '<info>You can now edit alpharpc_*.yml config files.</info>',
             '',
         ));
     }
@@ -106,9 +106,7 @@ class PrepareCustomConfig extends Command
             }
         }
 
-        $output->writeln(array(
-            'Copying '.$file.'.'
-        ));
+        $output->writeln(array('Copying '.$file.' to '.$target));
 
         if (!copy($source, $target)) {
             throw new \RuntimeException('Unable to copy "'.$file.'" to "'
