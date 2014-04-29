@@ -42,8 +42,8 @@ class Stream implements StreamInterface
     protected $defaultTimer;
 
     /**
-     *
-     * @param \AlphaRPC\Common\Socket\Socket $socket
+     * @param Socket         $socket
+     * @param TimerInterface $defaultTimer Optional
      */
     public function __construct(Socket $socket, TimerInterface $defaultTimer = null)
     {
@@ -76,7 +76,7 @@ class Stream implements StreamInterface
      *
      * @param TimerInterface $timer
      *
-     * @return MesageInterface
+     * @return MessageInterface
      *
      * @throws TimeoutException
      */
