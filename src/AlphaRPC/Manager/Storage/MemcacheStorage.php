@@ -61,6 +61,11 @@ class MemcacheStorage extends AbstractStorage
     protected $prefix = null;
 
     /**
+     * Magic string to indicate this value is split.
+     */
+    const VALUE_SPLIT = '_____SPLIT_VALUE_____';
+
+    /**
      * Create a new Memcache Store.
      *
      * @param array $config
@@ -108,6 +113,12 @@ class MemcacheStorage extends AbstractStorage
             }
         }
 
+        if (false !== strpos($value, self::VALUE_SPLIT)) {
+            // Value was too big, and was therefore split.
+            // Retrieve the individual parts.
+            return $this->getSplit($key, substr($value, strlen(self::VALUE_SPLIT)));
+        }
+
         return $value;
     }
 
@@ -127,6 +138,14 @@ class MemcacheStorage extends AbstractStorage
     public function remove($key)
     {
         if (!$this->has($key)) {
+            return;
+        }
+
+        $value = $this->memcached->get($key);
+        if (false !== strpos($value, self::VALUE_SPLIT)) {
+            // Value was too big, and was therefore split.
+            // Remove the individual parts.
+            $this->removeSplit($key, substr($value, strlen(self::VALUE_SPLIT)));
             return;
         }
 
@@ -153,6 +172,13 @@ class MemcacheStorage extends AbstractStorage
             $success = $this->memcached->set($key, $value);
 
             if (!$success) {
+                // If the key is too big, set it with different parts.
+                // Result code 37 = ITEM TOO BIG
+                if (37 == $this->memcached->getResultCode()) {
+                    // Item too big. Split in parts.
+                    return $this->setSplit($key, $value);
+                }
+
                 $msg = sprintf(
                     'Unable to store value for key "%s": %s.',
                     $key,
@@ -165,6 +191,103 @@ class MemcacheStorage extends AbstractStorage
         }
 
         return $value;
+    }
+
+    /**
+     * Split a value in different parts and add them one by one.
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return mixed
+     * @throws \RuntimeException
+     */
+    private function setSplit($key, $value)
+    {
+        // Split in values of 0.99MiB.
+        $values = str_split($value, 0.99 * 1024 * 1024);
+
+        $to_set       = array();
+        $to_set[$key] = self::VALUE_SPLIT.count($values);
+
+        foreach ($values as $part_nr => $v) {
+            $to_set[$key.$part_nr] = $v;
+        }
+
+        if (false === $this->memcached->setMulti($to_set)) {
+            $msg = sprintf(
+                'Unable to store split values for key "%s": %s.',
+                $key,
+                $this->memcached->getResultMessage()
+            );
+
+            $this->getLogger()->log(LogLevel::NOTICE, $msg);
+            throw new \RuntimeException($msg);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Retrieve the individual parts of a split value.
+     *
+     * @param string  $key
+     * @param integer $parts
+     *
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function getSplit($key, $parts)
+    {
+        $keys = array();
+        for ($i = 0; $i < $parts; $i++) {
+            $keys[] = $key.$i;
+        }
+
+        $values = $this->memcached->getMulti($keys);
+
+        if (false === $values) {
+            $msg = sprintf(
+                'Unable to retrieve split key "%s": %s.',
+                $key,
+                $this->memcached->getResultMessage()
+            );
+
+            $this->getLogger()->log(LogLevel::NOTICE, $msg);
+            throw new \RuntimeException($msg);
+        }
+
+        $value = implode('', $values);
+
+        return $value;
+    }
+
+    /**
+     * Remove the individual items of a split value.
+     *
+     * @param string  $key
+     * @param integer $parts
+     *
+     * @throws \RuntimeException
+     */
+    private function removeSplit($key, $parts)
+    {
+        $keys   = array();
+        $keys[] = $key;
+        for ($i = 0; $i < $parts; $i++) {
+            $keys[] = $key.$i;
+        }
+
+        if (false === $this->memcached->deleteMulti($keys)) {
+            $msg = sprintf(
+                'Unable to remove split values for key "%s": %s.',
+                $key,
+                $this->memcached->getResultMessage()
+            );
+
+            $this->getLogger()->log(LogLevel::NOTICE, $msg);
+            throw new \RuntimeException($msg);
+        }
     }
 
     /**
