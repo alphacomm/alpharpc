@@ -13,14 +13,22 @@
 namespace AlphaRPC\Manager\Storage;
 
 use ArrayAccess;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * @author Reen Lokum <reen@alphacomm.nl>
  * @package AlphaRPC
  * @subpackage StorageHandler
  */
-abstract class AbstractStorage implements ArrayAccess
+abstract class AbstractStorage implements ArrayAccess, LoggerAwareInterface
 {
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
     abstract public function set($key, $value);
 
     abstract public function get($key);
@@ -47,5 +55,24 @@ abstract class AbstractStorage implements ArrayAccess
     public function offsetUnset($key)
     {
         $this->remove($key);
+    }
+
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * Returns a Logger.
+     *
+     * @return LoggerInterface
+     */
+    public function getLogger()
+    {
+        if (null === $this->logger) {
+            $this->logger = new NullLogger();
+        }
+
+        return $this->logger;
     }
 }
