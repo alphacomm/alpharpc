@@ -78,24 +78,16 @@ class MemcacheStorage extends AbstractStorage
     {
         $memcache = new Memcached();
         $memcache->addServer($this->host, $this->port);
-        $this->memcached = $memcache;
-    }
 
-    /**
-     * Puts the prefix before the key.
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    protected function getKey($key)
-    {
-        return $this->prefix.$key;
+        if (null !== $this->prefix) {
+            $memcache->setOption(Memcached::OPT_PREFIX_KEY, $this->prefix);
+        }
+
+        $this->memcached = $memcache;
     }
 
     public function get($key)
     {
-        $key   = $this->getKey($key);
         $value = $this->memcached->get($key);
 
         if ($value === false) {
@@ -122,7 +114,6 @@ class MemcacheStorage extends AbstractStorage
     public function has($key)
     {
         try {
-            $key = $this->getKey($key);
             if ($this->get($key) === null) {
                 return false;
             }
@@ -139,7 +130,6 @@ class MemcacheStorage extends AbstractStorage
             return;
         }
 
-        $key = $this->getKey($key);
         $success = $this->memcached->delete($key);
 
         if (!$success) {
@@ -156,7 +146,6 @@ class MemcacheStorage extends AbstractStorage
 
     public function set($key, $value)
     {
-        $key     = $this->getKey($key);
         $success = $this->memcached->set($key, $value);
         if (!$success) {
             // Try reconnect
