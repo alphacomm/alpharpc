@@ -29,12 +29,44 @@ abstract class AbstractStorage implements ArrayAccess, LoggerAwareInterface
      */
     protected $logger;
 
+    /**
+     * Set a key-value pair.
+     *
+     * @param string $key
+     * @param mixed $value
+     *
+     * @return mixed
+     * @throws \RuntimeException
+     */
     abstract public function set($key, $value);
 
+    /**
+     * Retrieve a key-value pair.
+     *
+     * @param string $key
+     *
+     * @return mixed|null
+     * @throws \RuntimeException
+     */
     abstract public function get($key);
 
+    /**
+     * Check for the existence of a key.
+     *
+     * @param string $key
+     *
+     * @return boolean
+     */
     abstract public function has($key);
 
+    /**
+     * Remove a key-value pair.
+     *
+     * @param string $key
+     *
+     * @return mixed
+     * @throws \RuntimeException
+     */
     abstract public function remove($key);
 
     public function offsetExists($key)

@@ -2,21 +2,22 @@
 /**
  * This file is part of AlphaRPC (http://alpharpc.net/)
  *
- * @license BSD-3 (please see the LICENSE file distributed with this source code.
- * @copyright Copyright (c) 2010-2013, Alphacomm Group B.V. (http://www.alphacomm.nl/)
+ * @license    BSD-3 (please see the LICENSE file distributed with this source code.
+ * @copyright  Copyright (c) 2010-2013, Alphacomm Group B.V. (http://www.alphacomm.nl/)
  *
- * @author Reen Lokum <reen@alphacomm.nl>
- * @package AlphaRPC
+ * @author     Reen Lokum <reen@alphacomm.nl>
+ * @package    AlphaRPC
  * @subpackage StorageHandler
  */
 
 namespace AlphaRPC\Manager\Storage;
 
 use Memcached;
+use Psr\Log\LogLevel;
 
 /**
- * @author Reen Lokum <reen@alphacomm.nl>
- * @package AlphaRPC
+ * @author     Reen Lokum <reen@alphacomm.nl>
+ * @package    AlphaRPC
  * @subpackage StorageHandler
  */
 class MemcacheStorage extends AbstractStorage
@@ -59,12 +60,20 @@ class MemcacheStorage extends AbstractStorage
      */
     protected $prefix = null;
 
+    /**
+     * Create a new Memcache Store.
+     *
+     * @param array $config
+     */
     public function __construct(array $config = array())
     {
         $this->setConfig($config);
         $this->connect();
     }
 
+    /**
+     * Connect to Memcache.
+     */
     private function connect()
     {
         $memcache = new Memcached();
@@ -77,7 +86,7 @@ class MemcacheStorage extends AbstractStorage
      *
      * @param string $key
      *
-     * @return $key
+     * @return string
      */
     protected function getKey($key)
     {
@@ -86,12 +95,24 @@ class MemcacheStorage extends AbstractStorage
 
     public function get($key)
     {
-        $key = $this->getKey($key);
+        $key   = $this->getKey($key);
         $value = $this->memcached->get($key);
+
         if ($value === false) {
             $resultCode = $this->memcached->getResultCode();
-            if ($resultCode == Memcached::RES_NOTFOUND) {
+            if ($resultCode === Memcached::RES_NOTFOUND) {
                 return null;
+            }
+
+            if ($resultCode !== Memcached::RES_SUCCESS) {
+                $msg = sprintf(
+                    'Unable to retrieve key "%s": %s.',
+                    $key,
+                    $this->memcached->getResultMessage()
+                );
+
+                $this->getLogger()->log(LogLevel::NOTICE, $msg);
+                throw new \RuntimeException($msg);
             }
         }
 
@@ -100,8 +121,12 @@ class MemcacheStorage extends AbstractStorage
 
     public function has($key)
     {
-        $key = $this->getKey($key);
-        if ($this->get($key) === null) {
+        try {
+            $key = $this->getKey($key);
+            if ($this->get($key) === null) {
+                return false;
+            }
+        } catch (\RuntimeException $e) {
             return false;
         }
 
@@ -110,29 +135,43 @@ class MemcacheStorage extends AbstractStorage
 
     public function remove($key)
     {
-        $key = $this->getKey($key);
-        $value = $this->get($key);
-        if ($value !== null) {
-            // Memcache has a value stored for this key, so we need to delete it.
-            $success = $this->memcached->delete($key);
-            if (!$success) {
-                throw new RuntimeException('Unable to remove value for key '.$key.'.');
-            }
+        if (!$this->has($key)) {
+            return;
         }
 
-        return $value;
+        $key = $this->getKey($key);
+        $success = $this->memcached->delete($key);
+
+        if (!$success) {
+            $msg = sprintf(
+                'Unable to remove value for key "%s": %s.',
+                $key,
+                $this->memcached->getResultMessage()
+            );
+
+            $this->getLogger()->log(LogLevel::NOTICE, $msg);
+            throw new \RuntimeException($msg);
+        }
     }
 
     public function set($key, $value)
     {
-        $key = $this->getKey($key);
+        $key     = $this->getKey($key);
         $success = $this->memcached->set($key, $value);
         if (!$success) {
             // Try reconnect
             $this->connect();
             $success = $this->memcached->set($key, $value);
+
             if (!$success) {
-                throw new \RuntimeException('Unable to store value for key '.$key.'.');
+                $msg = sprintf(
+                    'Unable to store value for key "%s": %s.',
+                    $key,
+                    $this->memcached->getResultMessage()
+                );
+
+                $this->getLogger()->log(LogLevel::NOTICE, $msg);
+                throw new \RuntimeException($msg);
             }
         }
 
