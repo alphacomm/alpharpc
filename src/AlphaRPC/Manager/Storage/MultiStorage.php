@@ -20,11 +20,20 @@ namespace AlphaRPC\Manager\Storage;
 class MultiStorage extends AbstractStorage
 {
     /**
+     * Contains the different Storage backends to which the
+     * results should be stored.
      *
-     * @var \AlphaRPC\Manager\StorageHandler\Storage\AbstractStorage[]
+     * @var AbstractStorage[]
      */
     protected $storages = array();
 
+    /**
+     * Add a new Storage backend.
+     *
+     * @param AbstractStorage $storage
+     *
+     * @return $this
+     */
     public function addStorage(AbstractStorage $storage)
     {
         $this->storages[] = $storage;
@@ -57,16 +66,20 @@ class MultiStorage extends AbstractStorage
 
     public function remove($key)
     {
-        $return = null;
+        $throwMe = false;
+
         foreach ($this->storages as $storage) {
-            $remove = $storage->remove($key);
-            if ($return === null) {
-                $return = $remove;
+            try {
+                $storage->remove($key);
+            } catch (\RuntimeException $ex) {
+                $throwMe = $ex;
+                unset($ex);
             }
         }
 
-        return $return;
-
+        if ($throwMe) {
+            throw $throwMe;
+        }
     }
 
     public function set($key, $value)
