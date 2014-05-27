@@ -66,6 +66,18 @@ class MemcacheStorage extends AbstractStorage
     const VALUE_SPLIT = '_____SPLIT_VALUE_____';
 
     /**
+     * Maximum size of a value that fits into Memcached (1MiB).
+     */
+    const VALUE_MAX_SIZE = 1048576;
+
+    /**
+     * Value size for split values.
+     *
+     * Is set to approximately 0.999 MiB.
+     */
+    const VALUE_SPLIT_SIZE = 1047527;
+
+    /**
      * Create a new Memcache Store.
      *
      * @param array $config
@@ -113,10 +125,8 @@ class MemcacheStorage extends AbstractStorage
             }
         }
 
-        if (false !== strpos($value, self::VALUE_SPLIT)) {
-            // Value was too big, and was therefore split.
-            // Retrieve the individual parts.
-            return $this->getSplit($key, substr($value, strlen(self::VALUE_SPLIT)));
+        if ($this->isSplit($value)) {
+            return $this->getSplit($key, $this->getNumberOfParts($key, $value));
         }
 
         return $value;
@@ -142,10 +152,8 @@ class MemcacheStorage extends AbstractStorage
         }
 
         $value = $this->memcached->get($key);
-        if (false !== strpos($value, self::VALUE_SPLIT)) {
-            // Value was too big, and was therefore split.
-            // Remove the individual parts.
-            $this->removeSplit($key, substr($value, strlen(self::VALUE_SPLIT)));
+        if ($this->isSplit($value)) {
+            $this->removeSplit($key, $this->getNumberOfParts($key, $value));
             return;
         }
 
@@ -169,16 +177,16 @@ class MemcacheStorage extends AbstractStorage
         if (!$success) {
             // Try reconnect
             $this->connect();
+
+            // If the value is too big, split it
+            // and set the individual parts.
+            if (strlen($value) > self::VALUE_MAX_SIZE) {
+                return $this->setSplit($key, $value);
+            }
+
             $success = $this->memcached->set($key, $value);
 
             if (!$success) {
-                // If the key is too big, set it with different parts.
-                // Result code 37 = ITEM TOO BIG
-                if (37 == $this->memcached->getResultCode()) {
-                    // Item too big. Split in parts.
-                    return $this->setSplit($key, $value);
-                }
-
                 $msg = sprintf(
                     'Unable to store value for key "%s": %s.',
                     $key,
@@ -204,8 +212,7 @@ class MemcacheStorage extends AbstractStorage
      */
     private function setSplit($key, $value)
     {
-        // Split in values of 0.99MiB.
-        $values = str_split($value, 0.99 * 1024 * 1024);
+        $values = str_split($value, self::VALUE_SPLIT_SIZE);
 
         $to_set       = array();
         $to_set[$key] = self::VALUE_SPLIT.count($values);
@@ -288,6 +295,42 @@ class MemcacheStorage extends AbstractStorage
             $this->getLogger()->log(LogLevel::NOTICE, $msg);
             throw new \RuntimeException($msg);
         }
+    }
+
+    /**
+     * Checks whether a value is split into multiple parts.
+     *
+     * @param string $value
+     *
+     * @return boolean
+     */
+    private function isSplit($value)
+    {
+        return self::VALUE_SPLIT == substr($value, 0, strlen(self::VALUE_SPLIT));
+    }
+
+    /**
+     * Returns the number if parts for the split value.
+     *
+     * @param string $key
+     * @param string $value
+     *
+     * @return integer
+     * @throws \RuntimeException
+     */
+    private function getNumberOfParts($key, $value)
+    {
+        $parts = substr($value, strlen(self::VALUE_SPLIT));
+
+        if (!ctype_digit($parts) || $parts > PHP_INT_MAX) {
+            throw new \RuntimeException(
+                'Number of parts in split value for key "'.$key.'" is invalid.'
+            );
+        }
+
+        // We know it's an integer. Now also force
+        // its data type to be an integer.
+        return (int) $parts;
     }
 
     /**
