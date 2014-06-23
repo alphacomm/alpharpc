@@ -353,6 +353,10 @@ class Service implements LoggerAwareInterface
         if ($timeout > 60) {
             $timeout = 60;
         }
+        
+        if ($timeout < 0) {
+            return 0;
+        }
 
         return $timeout*1000;
     }
