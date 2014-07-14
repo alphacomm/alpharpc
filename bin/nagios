@@ -12,29 +12,27 @@
  */
 
 // Make sure the ipc files don't end up all over the server.
-chdir(dirname(__DIR__));
 
-require __DIR__.'/../vendor/autoload.php';
-
-use \AlphaRPC\Client\ZMStatus;
+use \AlphaRPC\Client\AlphaRPCStatus;
 
 call_user_func(function() {
-    $config = require __DIR__.'/../config/runtime.php';
+    /* @var $container Symfony\Component\DependencyInjection\ContainerInterface */
+    $container = require_once dirname(__DIR__).'/app/bootstrap.php';
 
-    $status = new ZMStatus();
+    $status = new AlphaRPCStatus();
 
     try {
         $warning = $critical = array();
 
-        $serviceList = $status->serviceList($config['worker-handler']);
+        $actionList = $status->queueStatus($container->getParameter('worker_handler'));
 
-        foreach ($serviceList as $service) {
-            $msg = $service['service'].' ('.$service['queue'].'/'.$service['available'].')';
-            if ($service['available'] < 1) {
+        foreach ($actionList as $action) {
+            $msg = $action['action'].' ('.$action['queue'].'/'.$action['available'].')';
+            if ($action['available'] < 1) {
                 $critical[] = $msg;
-            } else if ($service['queue'] > 50) {
+            } else if ($action['queue'] > 50) {
                 $critical[] = $msg;
-            } else if ($service['queue'] > 25) {
+            } else if ($action['queue'] > 25) {
                 $warning[] = $msg;
             }
         }
@@ -49,7 +47,7 @@ call_user_func(function() {
             echo 'WARNING '.implode(', ', $warning).PHP_EOL;
             exit(1);
         }
-        echo 'OK '.count($serviceList).' services.'.PHP_EOL;
+        echo 'OK '.count($actionList).' actions.'.PHP_EOL;
         exit(0);
     } catch (Exception $e) {
         echo 'CRITICAL Exception: ' . $e->getMessage() . PHP_EOL;
