@@ -307,6 +307,20 @@ class Client implements LoggerAwareInterface
     }
 
     /**
+     * Invalidate the socket for a specific manager.
+     *
+     * @param string $manager
+     *
+     * @return void
+     */
+    protected function invalidateSocket($manager)
+    {
+        if (isset($this->socket[$manager])) {
+            unset($this->socket[$manager]);
+        }
+    }
+
+    /**
      * Serializes parameters.
      *
      * @param array $params
@@ -343,7 +357,14 @@ class Client implements LoggerAwareInterface
         $stream = $socket->getStream();
         $stream->send($msg);
 
-        $response = $stream->read(new TimeoutTimer($this->delay));
+        try {
+            $response = $stream->read(new TimeoutTimer($this->delay));
+        } catch (TimeoutException $ex) {
+            $this->invalidateSocket($manager);
+
+            throw $ex;
+        }
+
         if (!$response instanceof ExecuteResponse) {
             $msg = $manager.': Invalid response '.get_class($response).'.';
             $this->getLogger()->notice($msg);
@@ -419,7 +440,14 @@ class Client implements LoggerAwareInterface
 
         $stream->send($request);
 
-        $response = $stream->read(new TimeoutTimer($this->delay + AlphaRPC::CLIENT_PING));
+        try {
+            $response = $stream->read(new TimeoutTimer($this->delay + AlphaRPC::CLIENT_PING));
+        } catch (TimeoutException $ex) {
+            $this->invalidateSocket($manager);
+
+            throw $ex;
+        }
+
         if ($response instanceof TimeoutResponse) {
             throw new TimeoutException('The request timed out.');
         } elseif (!$response instanceof FetchResponse) {
