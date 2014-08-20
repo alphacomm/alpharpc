@@ -68,3 +68,8 @@ If you set this parameters to `false` and the response is not yet available, you
 You can safely try to fetch the response again.
 
 NOTE: fetching a response is **not necessary**! If you just want to send a request to a Worker, without caring about the result (in the client), you may choose not to fetch the response. That effectively makes your request a background taks.
+
+
+## Creating a Worker
+
+If you want to run your own actions, see [Creating a Worker](create-worker.md).
