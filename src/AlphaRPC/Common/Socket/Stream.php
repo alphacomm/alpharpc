@@ -100,6 +100,10 @@ class Stream implements StreamInterface
     }
 
     /**
+     * Handles messages that are already in the buffer.
+     *
+     * When the timer expires, no more messages will be read, even
+     * when there are still more in the buffer.
      *
      * @param TimerInterface $timer
      *
@@ -109,16 +113,22 @@ class Stream implements StreamInterface
     public function handle(TimerInterface $timer = null)
     {
         $timer = $timer ?: new UnlimitedTimer();
-        do {
+        while (true) {
             try {
+                // Read from the buffer, but don't wait for new messages.
                 $this->read(new TimeoutTimer(0));
             } catch (TimeoutException $ex) {
-                // Timeout is not relevant here.
                 unset($ex);
 
+                // There is no message in the buffer. Return immediately.
                 return;
             }
-        } while (!$timer->isExpired());
+
+            if ($timer->isExpired()) {
+                // There is no more time to handle messages. Return immediately.
+                return;
+            }
+        }
     }
 
     /**
