@@ -141,7 +141,7 @@ class WorkerHandler implements LoggerAwareInterface
      * @param string          $type
      * @param StreamInterface $stream
      *
-     * @return ClientHandler
+     * @return WorkerHandler
      */
     protected function setStream($type, $stream)
     {
