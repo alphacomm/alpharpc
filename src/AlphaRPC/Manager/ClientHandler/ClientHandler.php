@@ -215,17 +215,27 @@ class ClientHandler implements LoggerAwareInterface
         }
 
         $workerHandler = $msg->getWorkerHandlerId();
-        $request = $this->getRequest($requestId);
+        $request       = $this->getRequest($requestId);
+
         if ($request === null) {
             $this->getLogger()->info(
-                'Worker-handler '.$workerHandler.' accepted request: '
-                .$requestId.', but request state is unknown.');
+                sprintf(
+                    'WorkerHandler %s accepted request %s, but request is unknown.',
+                    $workerHandler,
+                    $requestId
+                )
+            );
 
             return;
         }
 
         $this->getLogger()->debug(
-            'Worker-handler '.$workerHandler.' accepted request: '.$requestId.'.');
+            sprintf(
+                'Worker-handler %s accepted request: %s.',
+                $workerHandler,
+                $requestId
+            )
+        );
 
         $request->setWorker($workerHandler);
     }
