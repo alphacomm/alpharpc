@@ -237,7 +237,7 @@ class ClientHandler implements LoggerAwareInterface
             )
         );
 
-        $request->setWorker($workerHandler);
+        $request->setWorkerHandlerId($workerHandler);
     }
 
     /**
@@ -529,7 +529,7 @@ class ClientHandler implements LoggerAwareInterface
         }
 
         foreach ($this->request as $request) {
-            $worker_handler_id = $request->getWorker();
+            $worker_handler_id = $request->getWorkerHandlerId();
 
             if ($this->hasWorkerHandler($worker_handler_id)) {
                 continue;
