@@ -34,7 +34,7 @@ curl -sS https://getcomposer.org/installer | php
 
 ## Starting AlphaRPC
 
-For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like [supervisor](For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like [supervisord](http://supervisord.org/).
+For now, we start AlphaRPC in some screen sessions. In production, we recommend you to use something like [supervisor](http://supervisord.org/).
 
 ```bash
 bin/start-handlers
@@ -59,4 +59,4 @@ examples/client-reverse.php 'hello world'
 Now you have a working AlphaRPC installation. You are ready to perform some common tasks:
 
  * [Use the AlphaRPC Client in your project](use-client.md)
- * [Create your own worker](create-a-worker.md)
+ * [Create a worker](create-worker.md)
