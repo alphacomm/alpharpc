@@ -385,27 +385,44 @@ class ClientHandler implements LoggerAwareInterface
     }
 
     /**
-     * Handle a Fetch from a client.
+     * Handle a Fetch Request from a Client.
      *
      * @param Client       $client
      * @param FetchRequest $msg
      */
     protected function clientFetch(Client $client, FetchRequest $msg)
     {
-        $requestId = $msg->getRequestId();
+        $requestId     = $msg->getRequestId();
         $waitForResult = $msg->getWaitForResult();
 
-        $this->getLogger()->debug('Client: '.bin2hex($client->getId()).' is requesting'
-            .' the result of request: '.$requestId.' wait: '
-            .($waitForResult ? 'yes' : 'no'));
         $client->setRequest($requestId, $waitForResult);
+
+        $this->getLogger()->debug(
+            sprintf(
+                'Client %s is requesting the result of request %s.',
+                bin2hex($client->getId()),
+                $requestId
+            )
+        );
+
         if ($this->storage->has($requestId)) {
             $this->sendResponseToClients($requestId);
-        } elseif (!$waitForResult) {
-            $this->logger->debug(
-                'No result for '.$requestId.' and client is not willing to wait.'
-            );
-            $this->reply($client, new TimeoutResponse($requestId));
+
+            return;
+        }
+
+        $this->logger->debug(
+            sprintf(
+                'The result for request %s is not yet available, but '.
+                'client %s is %s to wait for it.',
+                $requestId,
+                bin2hex($client->getId()),
+                ($waitForResult) ? 'willing' : 'not willing'
+            )
+        );
+
+        if (!$waitForResult) {
+            $this->reply($client, new TimeoutResponse($requestId));;
         }
     }
 
