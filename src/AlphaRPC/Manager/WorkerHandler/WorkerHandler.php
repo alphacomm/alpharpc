@@ -95,18 +95,6 @@ class WorkerHandler implements LoggerAwareInterface
     protected $handlerId;
 
     /**
-     *
-     * @var int
-     */
-    protected $timeout = 500;
-
-    /**
-     *
-     * @var float
-     */
-    protected $lastNotifyAt = 0;
-
-    /**
      * List of actions that are not available right now.
      *
      * @var array
@@ -622,13 +610,6 @@ class WorkerHandler implements LoggerAwareInterface
      */
     public function notify($requestId = null)
     {
-        if (
-            $requestId === null &&
-            $this->lastNotifyAt > microtime(true) - ($this->timeout / 1000)
-        ) {
-            return;
-        }
-        $this->lastNotifyAt = microtime(true);
         $this->getStream('status')->send(
             new WorkerHandlerStatus($this->getId(), $requestId)
         );
