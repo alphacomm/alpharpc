@@ -346,6 +346,28 @@ class ClientHandler implements LoggerAwareInterface
             } while (isset($this->request[$requestId]));
         }
 
+        if ($this->storage->has($requestId)) {
+            $this->getLogger()->info(
+                sprintf(
+                    'Client %s wants to execute request %s. '.
+                    'Since there already is a result for that request, '.
+                    'it will be sent back immediately.',
+                    bin2hex($client->getId()),
+                    $requestId
+                )
+            );
+
+            $this->reply(
+                $client,
+                new ExecuteResponse(
+                    $requestId,
+                    $this->storage->get($requestId)
+                )
+            );
+
+            return;
+        }
+
         // The Client always needs to receive this
         // response, so just send it right away.
         $this->reply($client, new ExecuteResponse($requestId));

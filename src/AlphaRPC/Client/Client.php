@@ -252,6 +252,7 @@ class Client implements LoggerAwareInterface
         foreach ($this->managers as $manager) {
             try {
                 $response = $this->sendExecuteRequest($manager, $request, $cache);
+
                 $request->setManager($manager);
                 $request->setRequestId($response->getRequestId());
                 $this->getLogger()->debug($manager.' accepted request '.$response->getRequestId().' '.$request->getFunction());
@@ -371,6 +372,10 @@ class Client implements LoggerAwareInterface
             throw new InvalidResponseException($msg);
         }
 
+        if (null !== $response->getResult()) {
+            $this->handleFetchResponse($response, $request);
+        }
+
         return $response;
     }
 
@@ -394,13 +399,11 @@ class Client implements LoggerAwareInterface
 
         $timer = $this->getFetchTimer($waitForResult);
         $req = new FetchRequest($request->getRequestId(), $waitForResult);
+
         do {
             try {
                 $response = $this->sendFetchRequest($request->getManager(), $req);
-                $rawResult = $response->getResult();
-                $this->getLogger()->info('Result: '.$rawResult.' for request: '.$request->getRequestId().'.');
-                $result = $this->serializer->unserialize($rawResult);
-                $request->setResponse($result);
+                $result = $this->handleFetchResponse($response, $request);
 
                 return $result;
             } catch (TimeoutException $ex) {
@@ -409,6 +412,22 @@ class Client implements LoggerAwareInterface
         } while (!$timer->isExpired());
 
         throw new TimeoutException('Request '.$request->getRequestId().' timed out.');
+    }
+
+    /**
+     * @param FetchResponse $response
+     * @param Request       $request
+     *
+     * @return mixed
+     */
+    private function handleFetchResponse(FetchResponse $response, Request $request)
+    {
+        $rawResult = $response->getResult();
+        $this->getLogger()->info('Received result: '.$rawResult.' for request: '.$request->getRequestId().'.');
+        $result = $this->serializer->unserialize($rawResult);
+        $request->setResponse($result);
+
+        return $result;
     }
 
     protected function getFetchTimer($waitForResult)
@@ -429,7 +448,7 @@ class Client implements LoggerAwareInterface
      * @param string       $manager
      * @param FetchRequest $request
      *
-     * @return MessageInterface
+     * @return FetchResponse
      * @throws InvalidResponseException
      * @throws RuntimeException
      */
@@ -450,7 +469,9 @@ class Client implements LoggerAwareInterface
 
         if ($response instanceof TimeoutResponse) {
             throw new TimeoutException('The request timed out.');
-        } elseif (!$response instanceof FetchResponse) {
+        }
+
+        if (!$response instanceof FetchResponse) {
             throw new InvalidResponseException('Invalid response: '.get_class($response));
         }
 
