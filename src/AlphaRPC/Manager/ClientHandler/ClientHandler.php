@@ -248,19 +248,23 @@ class ClientHandler implements LoggerAwareInterface
     public function onWorkerHandlerStatusMessage(WorkerHandlerStatus $msg)
     {
         $handlerId = $msg->getWorkerHandlerId();
+
         if (isset($this->workerHandlers[$handlerId])) {
             // Remove to make sure the handlers are ordered by time.
             unset($this->workerHandlers[$handlerId]);
         }
+
         $this->workerHandlers[$handlerId] = microtime(true);
 
         $requestId = $msg->getRequestId();
-        if ($requestId !== null) {
-            $this->getLogger()->debug(
-                'Storage has a result available for: '.$requestId.'.');
 
-            $this->sendResponseToClients($requestId);
+        if ($requestId === null) {
+            return;
         }
+
+        $this->getLogger()->debug('Storage has a result available for: '.$requestId.'.');
+
+        $this->sendResponseToClients($requestId);
     }
 
     /**
