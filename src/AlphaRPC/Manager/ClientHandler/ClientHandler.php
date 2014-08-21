@@ -355,7 +355,7 @@ class ClientHandler implements LoggerAwareInterface
                 .bin2hex($client->getId()).' for action '.$action.'.');
 
             $this->addRequest(new Request($requestId, $action, $params));
-            if (!isset($this->storage[$requestId])) {
+            if (!$this->storage->has($requestId)) {
                 $this->addWorkerQueue($requestId);
             }
         } else {
@@ -381,7 +381,7 @@ class ClientHandler implements LoggerAwareInterface
             .' the result of request: '.$requestId.' wait: '
             .($waitForResult ? 'yes' : 'no'));
         $client->setRequest($requestId, $waitForResult);
-        if (isset($this->storage[$requestId])) {
+        if ($this->storage->has($requestId)) {
             $this->sendResponseToClients($requestId);
         } elseif (!$waitForResult) {
             $this->logger->debug(
@@ -399,7 +399,7 @@ class ClientHandler implements LoggerAwareInterface
      */
     protected function sendResponseToClients($requestId)
     {
-        if (!isset($this->storage[$requestId])) {
+        if (!$this->storage->has($requestId)) {
             $this->getLogger()->notice(
                 'Storage does not have a result for request: '.$requestId.'.'
             );
@@ -407,7 +407,7 @@ class ClientHandler implements LoggerAwareInterface
             return;
         }
 
-        $result = $this->storage[$requestId];
+        $result = $this->storage->get($requestId);
         $clients = $this->getClientsForRequest($requestId);
         $this->removeRequest($requestId);
         $msg = new FetchResponse($requestId, $result);
