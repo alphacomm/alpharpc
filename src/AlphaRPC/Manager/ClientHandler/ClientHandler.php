@@ -132,7 +132,9 @@ class ClientHandler implements LoggerAwareInterface
 
             $routing = $event->getMessage()->getRoutingInformation();
 
-            return call_user_func($callback, $protocol, $routing);
+            call_user_func($callback, $protocol, $routing);
+
+            return;
         });
 
         return $this;
@@ -161,9 +163,13 @@ class ClientHandler implements LoggerAwareInterface
         $client = $this->client(array_shift($routing));
 
         if ($msg instanceof ExecuteRequest) {
-            return $this->clientRequest($client, $msg);
+            $this->clientRequest($client, $msg);
+
+            return;
         } elseif ($msg instanceof FetchRequest) {
-            return $this->clientFetch($client, $msg);
+            $this->clientFetch($client, $msg);
+
+            return;
         }
 
         $this->getLogger()->info('Invalid message type: '.get_class($msg).'.');
@@ -265,7 +271,7 @@ class ClientHandler implements LoggerAwareInterface
     public function hasExpiredWorkerHandler()
     {
         $hasExpired = false;
-        $timeout = 1000;
+        $timeout = AlphaRPC::WORKER_HANDLER_TIMEOUT;
         $validTime = microtime(true) - ($timeout/1000);
         foreach ($this->workerHandlers as $handlerId => $time) {
             if ($time >= $validTime) {
@@ -392,10 +398,10 @@ class ClientHandler implements LoggerAwareInterface
      */
     public function handle()
     {
-        $this->getStream('client')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/2));
-        $this->getStream('workerHandler')->handle();
+        $this->getStream('client')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
+        $this->getStream('workerHandler')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
         $this->handleWorkerHandlerQueue();
-        $this->getStream('workerHandlerStatus')->handle();
+        $this->getStream('workerHandlerStatus')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
         $this->handleExpired();
         $this->handleExpiredWorkerHandlers();
     }

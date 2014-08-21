@@ -12,9 +12,11 @@
 
 namespace AlphaRPC\Manager\WorkerHandler;
 
+use AlphaRPC\Common\AlphaRPC;
 use AlphaRPC\Common\MessageStream\MessageEvent;
 use AlphaRPC\Common\MessageStream\StreamInterface;
 use AlphaRPC\Common\Protocol\Message\MessageInterface;
+use AlphaRPC\Common\Timer\TimeoutTimer;
 use AlphaRPC\Manager\Protocol\ClientHandlerJobRequest;
 use AlphaRPC\Manager\Protocol\ClientHandlerJobResponse;
 use AlphaRPC\Manager\Protocol\QueueStatusRequest;
@@ -24,8 +26,6 @@ use AlphaRPC\Manager\Protocol\WorkerStatusRequest;
 use AlphaRPC\Manager\Protocol\WorkerStatusResponse;
 use AlphaRPC\Manager\Request;
 use AlphaRPC\Manager\Storage\AbstractStorage;
-use AlphaRPC\Manager\WorkerHandler\Action;
-use AlphaRPC\Manager\WorkerHandler\Worker;
 use AlphaRPC\Worker\Protocol\Destroy;
 use AlphaRPC\Worker\Protocol\ExecuteJobRequest;
 use AlphaRPC\Worker\Protocol\GetJobRequest;
@@ -95,18 +95,6 @@ class WorkerHandler implements LoggerAwareInterface
     protected $handlerId;
 
     /**
-     *
-     * @var int
-     */
-    protected $timeout = 500;
-
-    /**
-     *
-     * @var float
-     */
-    protected $lastNotifyAt = 0;
-
-    /**
      * List of actions that are not available right now.
      *
      * @var array
@@ -143,7 +131,7 @@ class WorkerHandler implements LoggerAwareInterface
      * @param string          $type
      * @param StreamInterface $stream
      *
-     * @return ClientHandler
+     * @return WorkerHandler
      */
     protected function setStream($type, $stream)
     {
@@ -160,7 +148,9 @@ class WorkerHandler implements LoggerAwareInterface
 
             $routing = $event->getMessage()->getRoutingInformation();
 
-            return call_user_func($callback, $protocol, $routing);
+            call_user_func($callback, $protocol, $routing);
+
+            return;
         });
 
         return $this;
@@ -603,8 +593,8 @@ class WorkerHandler implements LoggerAwareInterface
      */
     public function handle()
     {
-        $this->getStream('clientHandler')->handle();
-        $this->getStream('worker')->handle();
+        $this->getStream('clientHandler')->handle(new TimeoutTimer(AlphaRPC::WORKER_HANDLER_TIMEOUT / 3));
+        $this->getStream('worker')->handle(new TimeoutTimer(AlphaRPC::WORKER_HANDLER_TIMEOUT / 3));
         $this->purgeWorkers();
         $this->handleRequests();
         $this->notify();
@@ -620,13 +610,6 @@ class WorkerHandler implements LoggerAwareInterface
      */
     public function notify($requestId = null)
     {
-        if (
-            $requestId === null &&
-            $this->lastNotifyAt > microtime(true) - ($this->timeout / 1000)
-        ) {
-            return;
-        }
-        $this->lastNotifyAt = microtime(true);
         $this->getStream('status')->send(
             new WorkerHandlerStatus($this->getId(), $requestId)
         );
