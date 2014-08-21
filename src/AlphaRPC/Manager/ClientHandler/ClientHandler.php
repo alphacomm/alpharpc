@@ -189,7 +189,9 @@ class ClientHandler implements LoggerAwareInterface
             $this->clientRequest($client, $msg);
 
             return;
-        } elseif ($msg instanceof FetchRequest) {
+        }
+
+        if ($msg instanceof FetchRequest) {
             $this->clientFetch($client, $msg);
 
             return;
