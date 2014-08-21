@@ -24,8 +24,6 @@ use AlphaRPC\Manager\Protocol\WorkerStatusRequest;
 use AlphaRPC\Manager\Protocol\WorkerStatusResponse;
 use AlphaRPC\Manager\Request;
 use AlphaRPC\Manager\Storage\AbstractStorage;
-use AlphaRPC\Manager\WorkerHandler\Action;
-use AlphaRPC\Manager\WorkerHandler\Worker;
 use AlphaRPC\Worker\Protocol\Destroy;
 use AlphaRPC\Worker\Protocol\ExecuteJobRequest;
 use AlphaRPC\Worker\Protocol\GetJobRequest;
