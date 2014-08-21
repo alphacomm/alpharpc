@@ -95,18 +95,20 @@ class ClientHandler implements LoggerAwareInterface
      * @param LoggerInterface $logger
      */
     public function __construct(
-        StreamInterface $clientStream, StreamInterface $workerHandlerStream,
-        StreamInterface $workerHandlerStatusStream, AbstractStorage $storage,
+        StreamInterface $clientStream,
+        StreamInterface $workerHandlerStream,
+        StreamInterface $workerHandlerStatusStream,
+        AbstractStorage $storage,
         LoggerInterface $logger = null
-    )
-    {
+    ) {
+        $this->storage = $storage;
+        $this->clients = new ClientBucket();
+
         $this->setLogger($logger);
+
         $this->setStream('client',              $clientStream);
         $this->setStream('workerHandler',       $workerHandlerStream);
         $this->setStream('workerHandlerStatus', $workerHandlerStatusStream);
-
-        $this->storage = $storage;
-        $this->clients = new ClientBucket();
     }
 
     /**
