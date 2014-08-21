@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> - AlphaRPC - Remote procedure call libraries written in PHP, with ZeroMQ.</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/components/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="/components/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/components/highlightjs/styles/github.css" />
+    <style type="text/css">
+        body { margin: 50px 0}
+        h1, h2, h3 { padding-top: 80px; margin-top: -45px; }
+        .sidebar { margin-top: 20px; width: 258px; position: fixed }
+        .sidebar li ul { display: none }
+        .no-js .sidebar li ul, .sidebar li.active > ul { display: block }
+        .sidebar li li a { padding: 3px 30px; font-size: 13px }
+        .sidebar li li li a { padding: 3px 45px; font-size: 11px }
+        .active > a { font-weight: bold }
+    </style>
+</head>
+<body class="no-js">
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="/" class="navbar-brand">AlphaRPC</a>
+            </div>
+            <nav>
+                <ul class="nav navbar-nav">
+                    <li><a href="/getting-started">Getting started</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="https://github.com/alphacomm/alpharpc">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container"><div class="row">
+        <div class="col-md-3">
+            <div class="sidebar" role="complementary">
+                <ul class="nav"><li><a href="#Creating-a-Worker">Creating a Worker</a><ul class="nav"><li><a href="#TL-DR">TL;DR</a></li><li><a href="#Definitions">Definitions</a></li><li><a href="#Create-your-first-worker-">Create your first worker!</a></li><li><a href="#Run-the-worker">Run the worker</a></li><li><a href="#Using-the-Action">Using the Action</a></li></ul></li></ul>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h1  id="Creating-a-Worker">Creating a Worker</h1>
+
+<h2  id="TL-DR">TL;DR</h2>
+
+<p>See the <a href="https://github.com/alphacomm/alpharpc/blob/master/examples/worker-reverse.php">example worker</a>.</p>
+
+<h2  id="Definitions">Definitions</h2>
+
+<p>A worker is the process that runs the actions. It has three components:</p>
+
+<ul>
+<li>One or more Actions (the functions that you want to execute).</li>
+<li>A Service (which contains the Actions. It runs as a sub-process from the Worker.)</li>
+<li>The Worker (which communicates with the AlphaRPC Worker Handler).</li>
+</ul>
+
+<h2  id="Create-your-first-worker-">Create your first worker!</h2>
+
+<p>The following code is all there is to it:</p>
+
+<pre><code class="php">use AlphaRPC\Worker\Runner as WorkerRunner;
+use AlphaRPC\Worker\Service;
+
+$worker = new WorkerRunner(
+    'tcp://127.0.0.1:61002', // Worker Handler address
+    './ipc'                  // Writable directory for IPC files.
+);
+
+$worker-&gt;forkAndRunService(function (Service $service) {
+    $service-&gt;addAction(
+        // Name of the Action.
+        'reverse',
+
+        // Implementation of the Action.
+        function($param) { return strrev($param); }
+    );
+});
+
+</code></pre>
+
+<h2  id="Run-the-worker">Run the worker</h2>
+
+<p>To run the worker:</p>
+
+<pre><code class="bash">php worker.php
+</code></pre>
+
+<h2  id="Using-the-Action">Using the Action</h2>
+
+<p>Now you can use the client to perform the Action. See <a href="/use-client/">Using the Client</a>.</p>
+        </div>
+    </div></div>
+    <script src="/components/jquery/jquery.min.js"></script>
+    <script src="/components/highlightjs/highlight.pack.js"></script>
+    <script src="/components/bootstrap/js/bootstrap.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+    var navHeight = $('.navbar').outerHeight(true)+10;
+    $('body').scrollspy({ target: '.sidebar', offset: navHeight}).removeClass('no-js');
+    $('.sidebar').affix();
+    </script>
+</body>
+</html>
