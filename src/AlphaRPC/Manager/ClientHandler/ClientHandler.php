@@ -276,17 +276,22 @@ class ClientHandler implements LoggerAwareInterface
             return;
         }
         $requestId = array_shift($this->workerHandlerQueue);
-        $request = $this->getRequest($requestId);
+        $request   = $this->getRequest($requestId);
+
         if ($request === null) {
             return;
         }
 
-        $this->getLogger()->debug(
-            'Sending request: '.$requestId.' to worker-handler.');
+        $this->getLogger()->debug('Sending request: '.$requestId.' to worker-handler.');
 
         $this->workerHandlerReady = false;
+
         $this->getStream('workerHandler')->send(
-            new ClientHandlerJobRequest($requestId, $request->getActionName(), $request->getParams())
+            new ClientHandlerJobRequest(
+                $requestId,
+                $request->getActionName(),
+                $request->getParams()
+            )
         );
     }
 
