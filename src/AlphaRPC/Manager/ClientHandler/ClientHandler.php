@@ -524,17 +524,27 @@ class ClientHandler implements LoggerAwareInterface
      */
     public function handleExpiredWorkerHandlers()
     {
-        if ($this->hasExpiredWorkerHandler()) {
-            foreach ($this->request as $request) {
-                $worker = $request->getWorker();
-                if (!$this->hasWorkerHandler($worker)) {
-                    $this->getLogger()->info(
-                        'Worker-handler for request: '.$request->getId()
-                        .' is expired, the request is queued again.'
-                    );
-                    $this->addWorkerQueue($request->getId());
-                }
+        if (!$this->hasExpiredWorkerHandler()) {
+            return;
+        }
+
+        foreach ($this->request as $request) {
+            $worker_handler_id = $request->getWorker();
+
+            if ($this->hasWorkerHandler($worker_handler_id)) {
+                continue;
             }
+
+            $this->addWorkerQueue($request->getId());
+
+            $this->getLogger()->info(
+                sprintf(
+                    'WorkerHandler %s for request %s is expired. '.
+                    'Therefore, the request is queued again.',
+                    $worker_handler_id,
+                    $request->getId()
+                )
+            );
         }
     }
 
