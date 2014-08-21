@@ -398,10 +398,10 @@ class ClientHandler implements LoggerAwareInterface
      */
     public function handle()
     {
-        $this->getStream('client')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/2));
-        $this->getStream('workerHandler')->handle();
+        $this->getStream('client')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
+        $this->getStream('workerHandler')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
         $this->handleWorkerHandlerQueue();
-        $this->getStream('workerHandlerStatus')->handle();
+        $this->getStream('workerHandlerStatus')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
         $this->handleExpired();
         $this->handleExpiredWorkerHandlers();
     }
