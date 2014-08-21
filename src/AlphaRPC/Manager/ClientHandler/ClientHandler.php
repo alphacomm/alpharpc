@@ -271,7 +271,7 @@ class ClientHandler implements LoggerAwareInterface
     public function hasExpiredWorkerHandler()
     {
         $hasExpired = false;
-        $timeout = 1000;
+        $timeout = AlphaRPC::WORKER_HANDLER_TIMEOUT;
         $validTime = microtime(true) - ($timeout/1000);
         foreach ($this->workerHandlers as $handlerId => $time) {
             if ($time >= $validTime) {

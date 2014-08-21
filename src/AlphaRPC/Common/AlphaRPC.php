@@ -35,5 +35,10 @@ class AlphaRPC
      */
     const CLIENT_PING = 500; // 0.5 seconds.
 
+    /**
+     * Time between heartbeats from a WorkerHandler to the ClientHandler.
+     */
+    const WORKER_HANDLER_TIMEOUT = 1000;
+
     private function __construct() {}
 }

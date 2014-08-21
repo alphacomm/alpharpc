@@ -12,9 +12,11 @@
 
 namespace AlphaRPC\Manager\WorkerHandler;
 
+use AlphaRPC\Common\AlphaRPC;
 use AlphaRPC\Common\MessageStream\MessageEvent;
 use AlphaRPC\Common\MessageStream\StreamInterface;
 use AlphaRPC\Common\Protocol\Message\MessageInterface;
+use AlphaRPC\Common\Timer\TimeoutTimer;
 use AlphaRPC\Manager\Protocol\ClientHandlerJobRequest;
 use AlphaRPC\Manager\Protocol\ClientHandlerJobResponse;
 use AlphaRPC\Manager\Protocol\QueueStatusRequest;
@@ -603,8 +605,8 @@ class WorkerHandler implements LoggerAwareInterface
      */
     public function handle()
     {
-        $this->getStream('clientHandler')->handle();
-        $this->getStream('worker')->handle();
+        $this->getStream('clientHandler')->handle(new TimeoutTimer(AlphaRPC::WORKER_HANDLER_TIMEOUT / 3));
+        $this->getStream('worker')->handle(new TimeoutTimer(AlphaRPC::WORKER_HANDLER_TIMEOUT / 3));
         $this->purgeWorkers();
         $this->handleRequests();
         $this->notify();
