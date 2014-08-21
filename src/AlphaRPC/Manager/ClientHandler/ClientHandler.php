@@ -346,24 +346,42 @@ class ClientHandler implements LoggerAwareInterface
             } while (isset($this->request[$requestId]));
         }
 
+        // The Client always needs to receive this
+        // response, so just send it right away.
+        $this->reply($client, new ExecuteResponse($requestId));
+
+        // Now actually handle the message.
         $request = $this->getRequest($requestId);
-        if (!$request) {
-            $action = $msg->getAction();
-            $params = $msg->getParams();
 
-            $this->getLogger()->info('New request: '.$requestId.' from client: '
-                .bin2hex($client->getId()).' for action '.$action.'.');
+        if ($request) {
+            $this->getLogger()->info(
+                sprintf(
+                    'Client %s wants to execute already known request %s.',
+                    bin2hex($client->getId()),
+                    $requestId
+                )
+            );
 
-            $this->addRequest(new Request($requestId, $action, $params));
-            if (!$this->storage->has($requestId)) {
-                $this->addWorkerQueue($requestId);
-            }
-        } else {
-            $this->getLogger()->info('Known request: '.$requestId.' from client: '
-                .bin2hex($client->getId()).'.');
+            return;
         }
 
-        $this->reply($client, new ExecuteResponse($requestId));
+        $action = $msg->getAction();
+        $params = $msg->getParams();
+
+        $this->getLogger()->info(
+            sprintf(
+                'New request %s from client %s for action %s',
+                $requestId,
+                bin2hex($client->getId()),
+                $action
+            )
+        );
+
+        $this->addRequest(new Request($requestId, $action, $params));
+
+        if (!$this->storage->has($requestId)) {
+            $this->addWorkerQueue($requestId);
+        }
     }
 
     /**
