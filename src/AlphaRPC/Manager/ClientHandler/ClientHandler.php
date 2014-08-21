@@ -443,23 +443,15 @@ class ClientHandler implements LoggerAwareInterface
         }
 
         $result = $this->storage->get($requestId);
-        $clients = $this->getClientsForRequest($requestId);
         $this->removeRequest($requestId);
+
         $msg = new FetchResponse($requestId, $result);
 
-        /*
-         * Check for the magic word "STATUS:" that indicates the job did
-         * not get an actual result. Format: STATUS:CODE
-         * TODO: Fix this.
-         */
-        if (substr($result, 0, 7) == 'STATUS:') {
-            $parts = explode(':', $result, 3);
-            $code = (int) $parts[1];
-            if ($code === 500) {
-                $msg = new PoisonResponse($requestId);
-            }
+        if ($this->isPoisonedResult($result)) {
+            $msg = new PoisonResponse($requestId);
         }
 
+        $clients   = $this->getClientsForRequest($requestId);
         $clientIds = array();
         foreach ($clients as $client) {
             $this->reply($client, $msg);
@@ -470,6 +462,35 @@ class ClientHandler implements LoggerAwareInterface
             'Sending result for request '.$requestId.' to '
             .' client(s): '.implode(', ', $clientIds).'.'
         );
+    }
+
+
+    /**
+     * Check for the magic word "STATUS:" that indicates the job did
+     * not get an actual result.
+     *
+     * Format: STATUS:CODE
+     *
+     * @todo Fix this.
+     *
+     * @param string $result
+     *
+     * @return bool
+     */
+    private function isPoisonedResult($result)
+    {
+        if ('STATUS:' != substr($result, 0, 7)) {
+            return false;
+        }
+
+        $parts = explode(':', $result, 3);
+        $code  = (int) $parts[1];
+
+        if ($code === 500) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
