@@ -132,7 +132,9 @@ class ClientHandler implements LoggerAwareInterface
 
             $routing = $event->getMessage()->getRoutingInformation();
 
-            return call_user_func($callback, $protocol, $routing);
+            call_user_func($callback, $protocol, $routing);
+
+            return;
         });
 
         return $this;
@@ -161,9 +163,13 @@ class ClientHandler implements LoggerAwareInterface
         $client = $this->client(array_shift($routing));
 
         if ($msg instanceof ExecuteRequest) {
-            return $this->clientRequest($client, $msg);
+            $this->clientRequest($client, $msg);
+
+            return;
         } elseif ($msg instanceof FetchRequest) {
-            return $this->clientFetch($client, $msg);
+            $this->clientFetch($client, $msg);
+
+            return;
         }
 
         $this->getLogger()->info('Invalid message type: '.get_class($msg).'.');

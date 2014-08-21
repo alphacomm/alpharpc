@@ -160,7 +160,9 @@ class WorkerHandler implements LoggerAwareInterface
 
             $routing = $event->getMessage()->getRoutingInformation();
 
-            return call_user_func($callback, $protocol, $routing);
+            call_user_func($callback, $protocol, $routing);
+
+            return;
         });
 
         return $this;
