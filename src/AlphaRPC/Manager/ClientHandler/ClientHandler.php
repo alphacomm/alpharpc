@@ -122,10 +122,31 @@ class ClientHandler implements LoggerAwareInterface
     protected function setStream($type, StreamInterface $stream)
     {
         $this->streams[$type] = $stream;
+
         $callback = array($this, 'on'.ucfirst($type).'Message');
+
+        $stream->addListener(
+            StreamInterface::MESSAGE,
+            $this->createEventListenerForStream($callback)
+        );
+
+        return $this;
+    }
+
+    /**
+     * Creates an event listener for a stream.
+     *
+     * @param callable $callback
+     *
+     * @return callable
+     */
+    private function createEventListenerForStream($callback)
+    {
         $logger = $this->getLogger();
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback, $logger) {
+
+        $function = function (MessageEvent $event) use ($callback, $logger) {
             $protocol = $event->getProtocolMessage();
+
             if ($protocol === null) {
                 $logger->debug('Incompatable message: '.$event->getMessage());
 
@@ -137,9 +158,9 @@ class ClientHandler implements LoggerAwareInterface
             call_user_func($callback, $protocol, $routing);
 
             return;
-        });
+        };
 
-        return $this;
+        return $function;
     }
 
     /**
