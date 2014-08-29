@@ -23,7 +23,7 @@ class AlphaRPC
      * Maximum time the handlers have to respond to a request
      * before it is considered to be down.
      */
-    const MAX_MANAGER_DELAY = 1000;
+    const MAX_MANAGER_DELAY = 100;
 
     /**
      * Default blocking timeout for a client fetching a response.
