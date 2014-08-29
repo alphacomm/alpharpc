@@ -27,6 +27,7 @@ use AlphaRPC\Common\Timer\TimeoutTimer;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use RuntimeException;
 use ZMQ;
 use ZMQContext;
@@ -508,9 +509,10 @@ class Client implements LoggerAwareInterface
     public function getLogger()
     {
         if ($this->logger === null) {
-            $this->logger = new \Psr\Log\NullLogger();
+            $this->logger = new NullLogger();
         }
 
         return $this->logger;
     }
+
 }
