@@ -300,7 +300,6 @@ class Client implements LoggerAwareInterface
 
         $context = new ZMQContext();
         $socket = Socket::create($context, ZMQ::SOCKET_REQ, $this->logger);
-        $socket->setSockOpt(ZMQ::SOCKOPT_LINGER, 0);
         $socket->connect($server);
 
         $this->socket[$server] = $socket;
