@@ -25,7 +25,7 @@ class ExecuteResponse extends FetchResponse
      * @param string $requestId
      * @param mixed  $result [OPTIONAL] The result of the request.
      */
-    public function __construct($requestId, $result = null)
+    public function __construct($requestId, $result = '')
     {
         parent::__construct($requestId, $result);
     }
@@ -40,7 +40,7 @@ class ExecuteResponse extends FetchResponse
     public static function fromMessage(Message $msg)
     {
         $request_id = $msg->shift();
-        $result     = $msg->count() ? $msg->shift() : null;
+        $result     = $msg->shift() ?: '';
 
         return new self($request_id, $result);
     }

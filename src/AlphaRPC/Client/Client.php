@@ -372,7 +372,7 @@ class Client implements LoggerAwareInterface
             throw new InvalidResponseException($msg);
         }
 
-        if (null !== $response->getResult()) {
+        if ('' != $response->getResult()) {
             $this->handleFetchResponse($response, $request);
         }
 
