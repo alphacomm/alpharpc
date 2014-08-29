@@ -19,11 +19,12 @@ use AlphaRPC\Client\Protocol\FetchRequest;
 use AlphaRPC\Client\Protocol\FetchResponse;
 use AlphaRPC\Client\Protocol\TimeoutResponse;
 use AlphaRPC\Common\AlphaRPC;
-use AlphaRPC\Common\Protocol\Message\MessageInterface;
+use AlphaRPC\Common\Serialization\PhpSerializer;
 use AlphaRPC\Common\Serialization\SerializerInterface;
 use AlphaRPC\Common\Socket\Socket;
 use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimeoutTimer;
+use AlphaRPC\Common\Timer\TimerInterface;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
@@ -118,7 +119,7 @@ class Client implements LoggerAwareInterface
         $this->setDelay($config['delay']);
 
         if (!isset($config['serializer'])) {
-            $config['serializer'] = new \AlphaRPC\Common\Serialization\PhpSerializer();
+            $config['serializer'] = new PhpSerializer();
         }
         $this->setSerializer($config['serializer']);
     }
@@ -430,6 +431,11 @@ class Client implements LoggerAwareInterface
         return $result;
     }
 
+    /**
+     * @param boolean $waitForResult
+     *
+     * @return TimerInterface
+     */
     protected function getFetchTimer($waitForResult)
     {
         if (!$waitForResult) {
