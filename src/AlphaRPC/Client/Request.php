@@ -106,7 +106,7 @@ class Request
     public function setResponse($response)
     {
         $this->response = $response;
-        $this->hasResult = true;
+        $this->hasResponse = true;
 
         return $this;
     }
