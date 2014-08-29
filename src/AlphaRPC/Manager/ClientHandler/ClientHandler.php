@@ -95,18 +95,20 @@ class ClientHandler implements LoggerAwareInterface
      * @param LoggerInterface $logger
      */
     public function __construct(
-        StreamInterface $clientStream, StreamInterface $workerHandlerStream,
-        StreamInterface $workerHandlerStatusStream, AbstractStorage $storage,
+        StreamInterface $clientStream,
+        StreamInterface $workerHandlerStream,
+        StreamInterface $workerHandlerStatusStream,
+        AbstractStorage $storage,
         LoggerInterface $logger = null
-    )
-    {
+    ) {
+        $this->storage = $storage;
+        $this->clients = new ClientBucket();
+
         $this->setLogger($logger);
+
         $this->setStream('client',              $clientStream);
         $this->setStream('workerHandler',       $workerHandlerStream);
         $this->setStream('workerHandlerStatus', $workerHandlerStatusStream);
-
-        $this->storage = $storage;
-        $this->clients = new ClientBucket();
     }
 
     /**
@@ -120,10 +122,31 @@ class ClientHandler implements LoggerAwareInterface
     protected function setStream($type, StreamInterface $stream)
     {
         $this->streams[$type] = $stream;
+
         $callback = array($this, 'on'.ucfirst($type).'Message');
+
+        $stream->addListener(
+            StreamInterface::MESSAGE,
+            $this->createEventListenerForStream($callback)
+        );
+
+        return $this;
+    }
+
+    /**
+     * Creates an event listener for a stream.
+     *
+     * @param callable $callback
+     *
+     * @return callable
+     */
+    private function createEventListenerForStream($callback)
+    {
         $logger = $this->getLogger();
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback, $logger) {
+
+        $function = function (MessageEvent $event) use ($callback, $logger) {
             $protocol = $event->getProtocolMessage();
+
             if ($protocol === null) {
                 $logger->debug('Incompatable message: '.$event->getMessage());
 
@@ -135,9 +158,9 @@ class ClientHandler implements LoggerAwareInterface
             call_user_func($callback, $protocol, $routing);
 
             return;
-        });
+        };
 
-        return $this;
+        return $function;
     }
 
     /**
@@ -166,7 +189,9 @@ class ClientHandler implements LoggerAwareInterface
             $this->clientRequest($client, $msg);
 
             return;
-        } elseif ($msg instanceof FetchRequest) {
+        }
+
+        if ($msg instanceof FetchRequest) {
             $this->clientFetch($client, $msg);
 
             return;
@@ -190,19 +215,29 @@ class ClientHandler implements LoggerAwareInterface
         }
 
         $workerHandler = $msg->getWorkerHandlerId();
-        $request = $this->getRequest($requestId);
+        $request       = $this->getRequest($requestId);
+
         if ($request === null) {
             $this->getLogger()->info(
-                'Worker-handler '.$workerHandler.' accepted request: '
-                .$requestId.', but request state is unknown.');
+                sprintf(
+                    'WorkerHandler %s accepted request %s, but request is unknown.',
+                    $workerHandler,
+                    $requestId
+                )
+            );
 
             return;
         }
 
         $this->getLogger()->debug(
-            'Worker-handler '.$workerHandler.' accepted request: '.$requestId.'.');
+            sprintf(
+                'Worker-handler %s accepted request: %s.',
+                $workerHandler,
+                $requestId
+            )
+        );
 
-        $request->setWorker($workerHandler);
+        $request->setWorkerHandlerId($workerHandler);
     }
 
     /**
@@ -213,19 +248,23 @@ class ClientHandler implements LoggerAwareInterface
     public function onWorkerHandlerStatusMessage(WorkerHandlerStatus $msg)
     {
         $handlerId = $msg->getWorkerHandlerId();
+
         if (isset($this->workerHandlers[$handlerId])) {
             // Remove to make sure the handlers are ordered by time.
             unset($this->workerHandlers[$handlerId]);
         }
+
         $this->workerHandlers[$handlerId] = microtime(true);
 
         $requestId = $msg->getRequestId();
-        if ($requestId !== null) {
-            $this->getLogger()->debug(
-                'Storage has a result available for: '.$requestId.'.');
 
-            $this->sendResponseToClients($requestId);
+        if ($requestId === null) {
+            return;
         }
+
+        $this->getLogger()->debug('Storage has a result available for: '.$requestId.'.');
+
+        $this->sendResponseToClients($requestId);
     }
 
     /**
@@ -237,17 +276,22 @@ class ClientHandler implements LoggerAwareInterface
             return;
         }
         $requestId = array_shift($this->workerHandlerQueue);
-        $request = $this->getRequest($requestId);
+        $request   = $this->getRequest($requestId);
+
         if ($request === null) {
             return;
         }
 
-        $this->getLogger()->debug(
-            'Sending request: '.$requestId.' to worker-handler.');
+        $this->getLogger()->debug('Sending request: '.$requestId.' to worker-handler.');
 
         $this->workerHandlerReady = false;
+
         $this->getStream('workerHandler')->send(
-            new ClientHandlerJobRequest($requestId, $request->getActionName(), $request->getParams())
+            new ClientHandlerJobRequest(
+                $requestId,
+                $request->getActionName(),
+                $request->getParams()
+            )
         );
     }
 
@@ -271,12 +315,14 @@ class ClientHandler implements LoggerAwareInterface
     public function hasExpiredWorkerHandler()
     {
         $hasExpired = false;
-        $timeout = AlphaRPC::WORKER_HANDLER_TIMEOUT;
-        $validTime = microtime(true) - ($timeout/1000);
+        $timeout    = AlphaRPC::WORKER_HANDLER_TIMEOUT;
+        $validTime  = microtime(true) - ($timeout / 1000);
+
         foreach ($this->workerHandlers as $handlerId => $time) {
             if ($time >= $validTime) {
                 break;
             }
+
             unset($this->workerHandlers[$handlerId]);
             $hasExpired = true;
         }
@@ -300,48 +346,83 @@ class ClientHandler implements LoggerAwareInterface
             } while (isset($this->request[$requestId]));
         }
 
+        // The Client always needs to receive this
+        // response, so just send it right away.
+        $this->reply($client, new ExecuteResponse($requestId));
+
+        // Now actually handle the message.
         $request = $this->getRequest($requestId);
-        if (!$request) {
-            $action = $msg->getAction();
-            $params = $msg->getParams();
 
-            $this->getLogger()->info('New request: '.$requestId.' from client: '
-                .bin2hex($client->getId()).' for action '.$action.'.');
+        if ($request) {
+            $this->getLogger()->info(
+                sprintf(
+                    'Client %s wants to execute already known request %s.',
+                    bin2hex($client->getId()),
+                    $requestId
+                )
+            );
 
-            $this->addRequest(new Request($requestId, $action, $params));
-            if (!isset($this->storage[$requestId])) {
-                $this->addWorkerQueue($requestId);
-            }
-        } else {
-            $this->getLogger()->info('Known request: '.$requestId.' from client: '
-                .bin2hex($client->getId()).'.');
+            return;
         }
 
-        $this->reply($client, new ExecuteResponse($requestId));
+        $action = $msg->getAction();
+        $params = $msg->getParams();
+
+        $this->getLogger()->info(
+            sprintf(
+                'New request %s from client %s for action %s',
+                $requestId,
+                bin2hex($client->getId()),
+                $action
+            )
+        );
+
+        $this->addRequest(new Request($requestId, $action, $params));
+
+        if (!$this->storage->has($requestId)) {
+            $this->addWorkerQueue($requestId);
+        }
     }
 
     /**
-     * Handle a Fetch from a client.
+     * Handle a Fetch Request from a Client.
      *
      * @param Client       $client
      * @param FetchRequest $msg
      */
     protected function clientFetch(Client $client, FetchRequest $msg)
     {
-        $requestId = $msg->getRequestId();
+        $requestId     = $msg->getRequestId();
         $waitForResult = $msg->getWaitForResult();
 
-        $this->getLogger()->debug('Client: '.bin2hex($client->getId()).' is requesting'
-            .' the result of request: '.$requestId.' wait: '
-            .($waitForResult ? 'yes' : 'no'));
         $client->setRequest($requestId, $waitForResult);
-        if (isset($this->storage[$requestId])) {
+
+        $this->getLogger()->debug(
+            sprintf(
+                'Client %s is requesting the result of request %s.',
+                bin2hex($client->getId()),
+                $requestId
+            )
+        );
+
+        if ($this->storage->has($requestId)) {
             $this->sendResponseToClients($requestId);
-        } elseif (!$waitForResult) {
-            $this->logger->debug(
-                'No result for '.$requestId.' and client is not willing to wait.'
-            );
-            $this->reply($client, new TimeoutResponse($requestId));
+
+            return;
+        }
+
+        $this->logger->debug(
+            sprintf(
+                'The result for request %s is not yet available, but '.
+                'client %s is %s to wait for it.',
+                $requestId,
+                bin2hex($client->getId()),
+                ($waitForResult) ? 'willing' : 'not willing'
+            )
+        );
+
+        if (!$waitForResult) {
+            $this->reply($client, new TimeoutResponse($requestId));;
         }
     }
 
@@ -353,7 +434,7 @@ class ClientHandler implements LoggerAwareInterface
      */
     protected function sendResponseToClients($requestId)
     {
-        if (!isset($this->storage[$requestId])) {
+        if (!$this->storage->has($requestId)) {
             $this->getLogger()->notice(
                 'Storage does not have a result for request: '.$requestId.'.'
             );
@@ -361,24 +442,16 @@ class ClientHandler implements LoggerAwareInterface
             return;
         }
 
-        $result = $this->storage[$requestId];
-        $clients = $this->getClientsForRequest($requestId);
+        $result = $this->storage->get($requestId);
         $this->removeRequest($requestId);
+
         $msg = new FetchResponse($requestId, $result);
 
-        /*
-         * Check for the magic word "STATUS:" that indicates the job did
-         * not get an actual result. Format: STATUS:CODE
-         * TODO: Fix this.
-         */
-        if (substr($result, 0, 7) == 'STATUS:') {
-            $parts = explode(':', $result, 3);
-            $code = (int) $parts[1];
-            if ($code === 500) {
-                $msg = new PoisonResponse($requestId);
-            }
+        if ($this->isPoisonedResult($result)) {
+            $msg = new PoisonResponse($requestId);
         }
 
+        $clients   = $this->getClientsForRequest($requestId);
         $clientIds = array();
         foreach ($clients as $client) {
             $this->reply($client, $msg);
@@ -389,6 +462,35 @@ class ClientHandler implements LoggerAwareInterface
             'Sending result for request '.$requestId.' to '
             .' client(s): '.implode(', ', $clientIds).'.'
         );
+    }
+
+
+    /**
+     * Check for the magic word "STATUS:" that indicates the job did
+     * not get an actual result.
+     *
+     * Format: STATUS:CODE
+     *
+     * @todo Fix this.
+     *
+     * @param string $result
+     *
+     * @return bool
+     */
+    private function isPoisonedResult($result)
+    {
+        if ('STATUS:' != substr($result, 0, 7)) {
+            return false;
+        }
+
+        $parts = explode(':', $result, 3);
+        $code  = (int) $parts[1];
+
+        if ($code === 500) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -422,17 +524,27 @@ class ClientHandler implements LoggerAwareInterface
      */
     public function handleExpiredWorkerHandlers()
     {
-        if ($this->hasExpiredWorkerHandler()) {
-            foreach ($this->request as $request) {
-                $worker = $request->getWorker();
-                if (!$this->hasWorkerHandler($worker)) {
-                    $this->getLogger()->info(
-                        'Worker-handler for request: '.$request->getId()
-                        .' is expired, the request is queued again.'
-                    );
-                    $this->addWorkerQueue($request->getId());
-                }
+        if (!$this->hasExpiredWorkerHandler()) {
+            return;
+        }
+
+        foreach ($this->request as $request) {
+            $worker_handler_id = $request->getWorkerHandlerId();
+
+            if ($this->hasWorkerHandler($worker_handler_id)) {
+                continue;
             }
+
+            $this->addWorkerQueue($request->getId());
+
+            $this->getLogger()->info(
+                sprintf(
+                    'WorkerHandler %s for request %s is expired. '.
+                    'Therefore, the request is queued again.',
+                    $worker_handler_id,
+                    $request->getId()
+                )
+            );
         }
     }
 

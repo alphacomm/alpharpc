@@ -46,9 +46,12 @@ class Request
     protected $activityAt = 0.0;
 
     /**
-     * @var null
+     * Contains the ID of the WorkerHandler
+     * that is processing the request.
+     *
+     * @var string
      */
-    protected $worker = null;
+    protected $workerHandlerId = null;
 
     /**
      *
@@ -109,16 +112,50 @@ class Request
         return $this->params;
     }
 
+    /**
+     * Set the Id of the WorkerHandler that
+     * is processing this request.
+     *
+     * @param string $workerHandlerId
+     */
+    public function setWorkerHandlerId($workerHandlerId)
+    {
+        $this->workerHandlerId = $workerHandlerId;
+    }
+
+    /**
+     * Returns the Id of the WorkerHandler that
+     * is processing this request.
+     *
+     * @return string
+     */
+    public function getWorkerHandlerId()
+    {
+        return $this->workerHandlerId;
+    }
+
+    /**
+     * @param $worker
+     *
+     * @return $this
+     *
+     * @deprecated Since version 1.3. Use ::setWorkerHandlerId() instead.
+     */
     public function setWorker($worker)
     {
-        $this->worker = $worker;
+        $this->setWorkerHandlerId($worker);
 
         return $this;
     }
 
+    /**
+     * @return string
+     *
+     * @deprecated Since version 1.3. Use ::getWorkerHandlerId() instead.
+     */
     public function getWorker()
     {
-        return $this->worker;
+        return $this->getWorkerHandlerId();
     }
 
     public function retry()
