@@ -41,16 +41,9 @@ class Client implements LoggerAwareInterface
     /**
      * List addresses where alpharpc instances are available.
      *
-     * @var string[]
+     * @var ManagerList
      */
-    protected $managers = array();
-
-    /**
-     * Servers that could not be reached within the delay time.
-     *
-     * @var string[]
-     */
-    protected $unavailableManagers = array();
+    protected $managerList;
 
     /**
      * Serializer used to send data over the sockets. Must match the worker
@@ -120,6 +113,8 @@ class Client implements LoggerAwareInterface
             $config['serializer'] = new \AlphaRPC\Common\Serialization\PhpSerializer();
         }
         $this->setSerializer($config['serializer']);
+
+        $this->managerList = new ManagerList();
     }
 
     /**
@@ -215,19 +210,19 @@ class Client implements LoggerAwareInterface
      * @param string|array $manager
      *
      * @return Client
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function addManager($manager)
     {
-        if (is_string($manager)) {
-            $manager = array($manager);
-        } elseif (!is_array($manager)) {
-            throw new \Exception('No servers given.');
+        if (is_array($manager)) {
+            foreach ($manager as $item) {
+                $this->managerList->add($item);
+            }
+
+            return $this;
         }
 
-        $this->managers = array_merge($this->managers, $manager);
-        // Use a random server first.
-        shuffle($this->managers);
+        $this->managerList->add($manager);
 
         return $this;
     }
@@ -249,21 +244,27 @@ class Client implements LoggerAwareInterface
         }
 
         $request = new Request($function, $params);
-        foreach ($this->managers as $manager) {
+        $prioritizedManagerList = $this->managerList->toPrioritizedArray();
+
+        foreach ($prioritizedManagerList as $manager) {
             try {
                 $response = $this->sendExecuteRequest($manager, $request, $cache);
 
                 $request->setManager($manager);
                 $request->setRequestId($response->getRequestId());
+                $this->managerList->flag($manager, ManagerList::FLAG_AVAILABLE);
+
                 $this->getLogger()->debug($manager.' accepted request '.$response->getRequestId().' '.$request->getFunction());
 
                 return $request;
             } catch (TimeoutException $ex) {
+                $this->managerList->flag($manager, ManagerList::FLAG_UNAVAILABLE);
+
                 $this->getLogger()->notice($manager.': '.$ex->getMessage());
             }
         }
 
-        throw new RuntimeException('AlphaRPC ('.implode(', ', $this->managers).') did not respond in time.');
+        throw new RuntimeException('AlphaRPC ('.implode(', ', $prioritizedManagerList).') did not respond in time.');
     }
 
     /**
