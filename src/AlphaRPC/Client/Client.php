@@ -19,14 +19,16 @@ use AlphaRPC\Client\Protocol\FetchRequest;
 use AlphaRPC\Client\Protocol\FetchResponse;
 use AlphaRPC\Client\Protocol\TimeoutResponse;
 use AlphaRPC\Common\AlphaRPC;
-use AlphaRPC\Common\Protocol\Message\MessageInterface;
+use AlphaRPC\Common\Serialization\PhpSerializer;
 use AlphaRPC\Common\Serialization\SerializerInterface;
 use AlphaRPC\Common\Socket\Socket;
 use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimeoutTimer;
+use AlphaRPC\Common\Timer\TimerInterface;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use RuntimeException;
 use ZMQ;
 use ZMQContext;
@@ -117,7 +119,7 @@ class Client implements LoggerAwareInterface
         $this->setDelay($config['delay']);
 
         if (!isset($config['serializer'])) {
-            $config['serializer'] = new \AlphaRPC\Common\Serialization\PhpSerializer();
+            $config['serializer'] = new PhpSerializer();
         }
         $this->setSerializer($config['serializer']);
     }
@@ -299,7 +301,6 @@ class Client implements LoggerAwareInterface
 
         $context = new ZMQContext();
         $socket = Socket::create($context, ZMQ::SOCKET_REQ, $this->logger);
-        $socket->setSockOpt(ZMQ::SOCKOPT_LINGER, 0);
         $socket->connect($server);
 
         $this->socket[$server] = $socket;
@@ -372,7 +373,7 @@ class Client implements LoggerAwareInterface
             throw new InvalidResponseException($msg);
         }
 
-        if (null !== $response->getResult()) {
+        if ('' != $response->getResult()) {
             $this->handleFetchResponse($response, $request);
         }
 
@@ -430,6 +431,11 @@ class Client implements LoggerAwareInterface
         return $result;
     }
 
+    /**
+     * @param boolean $waitForResult
+     *
+     * @return TimerInterface
+     */
     protected function getFetchTimer($waitForResult)
     {
         if (!$waitForResult) {
@@ -508,9 +514,10 @@ class Client implements LoggerAwareInterface
     public function getLogger()
     {
         if ($this->logger === null) {
-            $this->logger = new \Psr\Log\NullLogger();
+            $this->logger = new NullLogger();
         }
 
         return $this->logger;
     }
+
 }
