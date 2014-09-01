@@ -36,6 +36,8 @@ $worker->forkAndRunService(function (Service $service) {
     );
 });
 
+$worker->run();
+
 ```
 
 ## Run the worker
