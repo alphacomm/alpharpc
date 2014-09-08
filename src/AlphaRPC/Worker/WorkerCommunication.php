@@ -123,16 +123,6 @@ class WorkerCommunication implements LoggerAwareInterface
     }
 
     /**
-     * Returns the PID of this Worker.
-     *
-     * @return integer
-     */
-    public function getServicePid()
-    {
-        return $this->servicePid;
-    }
-
-    /**
      * Initializes the worker.
      */
     public function start()
