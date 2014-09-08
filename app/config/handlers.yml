@@ -10,8 +10,6 @@ services:
       - "@stream_client_handler_worker_handler_host"
       - "@storage"
       - "@worker_handler_logger"
-    calls:
-      - [setDelay, ["%manager_delay%"]]
 
   handler_worker_poll:
     class: ZMQPoll
