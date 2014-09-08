@@ -10,3 +10,6 @@ parameters:
 
   client_handler_worker_handler: ipc://ipc/alpharpc_client_handler_worker_handler.ipc
   worker_handler_status:         ipc://ipc/alpharpc_worker_status.ipc
+
+  # This value should be less than or equal to the delay provided to the clients and worker.
+  manager_delay: 1000

@@ -17,6 +17,7 @@ use AlphaRPC\Common\MessageStream\StreamInterface;
 use AlphaRPC\Common\Protocol\Message\MessageInterface;
 use AlphaRPC\Common\Socket\Message;
 use AlphaRPC\Common\Socket\Socket;
+use AlphaRPC\Common\Socket\Stream;
 use AlphaRPC\Worker\Protocol\ActionListRequest;
 use AlphaRPC\Worker\Protocol\ActionListResponse;
 use AlphaRPC\Worker\Protocol\ActionNotFound;
@@ -54,7 +55,7 @@ class WorkerCommunication implements LoggerAwareInterface
     /**
      * Contains the communication stream with the Worker Handler.
      *
-     * @var \AlphaRPC\Common\MessageStream\MessageStream
+     * @var Stream
      */
     protected $workerHandlerStream;
 
@@ -68,7 +69,7 @@ class WorkerCommunication implements LoggerAwareInterface
     /**
      * Contains the communication stream with the Service process.
      *
-     * @var \AlphaRPC\Common\Socket\Stream
+     * @var Stream
      */
     protected $serviceStream;
 
@@ -84,6 +85,18 @@ class WorkerCommunication implements LoggerAwareInterface
      */
     protected $poll;
 
+    /**
+     * The time it takes for the handler to respond.
+     *
+     * @var int
+     */
+    protected $delay = AlphaRPC::MAX_MANAGER_DELAY;
+
+    /**
+     * @param Worker $worker
+     * @param Socket $workerHandlerSocket
+     * @param Socket $serviceSocket
+     */
     public function __construct(Worker $worker, Socket $workerHandlerSocket, Socket $serviceSocket)
     {
         $this->worker = $worker;
@@ -92,13 +105,21 @@ class WorkerCommunication implements LoggerAwareInterface
     }
 
     /**
-     * Returns the PID of this Worker.
+     * The time it takes for the handler to respond.
      *
-     * @return integer
+     * @param int $delay
+     *
+     * @throws \InvalidArgumentException
+     * @return WorkerCommunication
      */
-    public function getServicePid()
+    public function setDelay($delay)
     {
-        return $this->servicePid;
+        if (!ctype_digit((string)$delay)) {
+            throw new \InvalidArgumentException('Delay must be a number.');
+        }
+        $this->delay = $delay;
+
+        return $this;
     }
 
     /**
@@ -122,7 +143,7 @@ class WorkerCommunication implements LoggerAwareInterface
             throw new \RuntimeException('Invalid state to process.');
         }
 
-        $expiry = 5000 + AlphaRPC::MAX_MANAGER_DELAY;
+        $expiry = 5000 + $this->delay;
         if ($this->worker->isExpired($expiry)) {
             $this->getLogger()->debug('Worker is expired, no longer registered to workerhandler.');
             $this->worker->setState(Worker::INVALID);
@@ -333,7 +354,7 @@ class WorkerCommunication implements LoggerAwareInterface
             return;
         }
 
-        $expiry = 5000 + AlphaRPC::MAX_MANAGER_DELAY;
+        $expiry = 5000 + $this->delay;
         if (!$this->worker->isExpired($expiry)) {
             return;
         }

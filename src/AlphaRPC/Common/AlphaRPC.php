@@ -22,8 +22,18 @@ class AlphaRPC
     /**
      * Maximum time the handlers have to respond to a request
      * before it is considered to be down.
+     *
+     * NOTE:
+     * This is the default value. And will be changed to 100 in the
+     * next major release to keep compatibility.
+     *
+     * You are advised to change the manager_delay in the config to
+     * 100ms.
+     *
+     * After that you also need to configure your client(s) and
+     * worker(s) with the setDelay() method.
      */
-    const MAX_MANAGER_DELAY = 100;
+    const MAX_MANAGER_DELAY = 1000;
 
     /**
      * Default blocking timeout for a client fetching a response.

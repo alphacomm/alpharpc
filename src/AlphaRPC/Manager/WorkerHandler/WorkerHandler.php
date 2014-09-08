@@ -141,7 +141,7 @@ class WorkerHandler implements LoggerAwareInterface
         $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback, $logger) {
             $protocol = $event->getProtocolMessage();
             if ($protocol === null) {
-                $logger->debug('Incompatable message: '.$event->getMessage());
+                $logger->debug('Incompatible message: '.$event->getMessage());
 
                 return;
             }

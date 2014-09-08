@@ -88,6 +88,13 @@ class ClientHandler implements LoggerAwareInterface
     protected $workerHandlerReady = true;
 
     /**
+     * The target execution time for a single handle() call.
+     *
+     * @var int
+     */
+    protected $delay = AlphaRPC::MAX_MANAGER_DELAY;
+
+    /**
      * @param StreamInterface $clientStream
      * @param StreamInterface $workerHandlerStream
      * @param StreamInterface $workerHandlerStatusStream
@@ -109,6 +116,24 @@ class ClientHandler implements LoggerAwareInterface
         $this->setStream('client',              $clientStream);
         $this->setStream('workerHandler',       $workerHandlerStream);
         $this->setStream('workerHandlerStatus', $workerHandlerStatusStream);
+    }
+
+    /**
+     * Sets the target execution time of a single handle() call.
+     *
+     * @param int $delay in ms
+     *
+     * @throws \InvalidArgumentException
+     * @return ClientHandler
+     */
+    public function setDelay($delay)
+    {
+        if (!ctype_digit((string)$delay)) {
+            throw new \InvalidArgumentException('Delay must be a number.');
+        }
+        $this->delay = $delay;
+
+        return $this;
     }
 
     /**
@@ -522,10 +547,10 @@ class ClientHandler implements LoggerAwareInterface
      */
     public function handle()
     {
-        $this->getStream('client')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
-        $this->getStream('workerHandler')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
+        $this->getStream('client')->handle(new TimeoutTimer($this->delay/4));
+        $this->getStream('workerHandler')->handle(new TimeoutTimer($this->delay/4));
         $this->handleWorkerHandlerQueue();
-        $this->getStream('workerHandlerStatus')->handle(new TimeoutTimer(AlphaRPC::MAX_MANAGER_DELAY/4));
+        $this->getStream('workerHandlerStatus')->handle(new TimeoutTimer($this->delay/4));
         $this->handleExpired();
         $this->handleExpiredWorkerHandlers();
     }
