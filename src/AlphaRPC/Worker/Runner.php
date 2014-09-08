@@ -12,6 +12,7 @@
 
 namespace AlphaRPC\Worker;
 
+use AlphaRPC\Common\AlphaRPC;
 use AlphaRPC\Common\PidTracker;
 use AlphaRPC\Common\Socket\Factory;
 use Psr\Log\LoggerAwareInterface;
@@ -74,11 +75,38 @@ class Runner implements LoggerAwareInterface
      */
     protected $ipcDir;
 
+    /**
+     * The time it takes for the handler to respond.
+     */
+    protected $delay = AlphaRPC::MAX_MANAGER_DELAY;
+
+    /**
+     * @param string $workerHandlerAddress
+     * @param string $ipcDir
+     */
     public function __construct($workerHandlerAddress, $ipcDir)
     {
         $this->setWorkerHandlerAddress($workerHandlerAddress);
         $this->setIpcDir($ipcDir);
         $this->createServiceAddress();
+    }
+
+    /**
+     * The time it takes for the handler to respond.
+     *
+     * @param int $delay
+     *
+     * @throws \InvalidArgumentException
+     * @return WorkerCommunication
+     */
+    public function setDelay($delay)
+    {
+        if (!ctype_digit((string)$delay)) {
+            throw new \InvalidArgumentException('Delay must be a number.');
+        }
+        $this->delay = $delay;
+
+        return $this;
     }
 
     /**
@@ -113,6 +141,7 @@ class Runner implements LoggerAwareInterface
      *
      * @param callable $bootstrap
      *
+     * @return Runner
      * @throws \RuntimeException
      */
     public function forkAndRunService($bootstrap)
@@ -174,6 +203,7 @@ class Runner implements LoggerAwareInterface
 
         $comm = new WorkerCommunication($this->worker, $workerHandlerSocket, $serviceSocket);
         $comm->setLogger($this->getLogger());
+        $comm->setDelay($this->delay);
 
         $this->registerSignalHandler();
         $this->running = true;
