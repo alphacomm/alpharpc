@@ -14,7 +14,7 @@ To get AlphaRPC working, you first need to install libzmq (the ZeroMQ library) a
 sudo apt-get install libzmq-dev php-pear php5-dev screen
 sudo pear channel-discover pear.zero.mq
 sudo pecl install pear.zero.mq/zmq-beta
-sudo echo 'extension=zmq.so' > /etc/php5/conf.d/zmq.ini
+sudo /bin/sh -c 'echo extension=zmq.so > /etc/php5/conf.d/zmq.ini'
 ```
 
 ## Install Composer
