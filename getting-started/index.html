@@ -37,7 +37,7 @@
     <div class="container"><div class="row">
         <div class="col-md-3">
             <div class="sidebar" role="complementary">
-                <ul class="nav"><li><a href="#Getting-Started">Getting Started</a><ul class="nav"><li><a href="#Installing-ZeroMQ-and-php-zmq">Installing ZeroMQ and php-zmq</a><ul class="nav"><li><a href="#On-Debian">On Debian</a></li></ul></li><li><a href="#Install-Composer">Install Composer</a></li><li><a href="#Installing-AlphaRPC-and-Composer">Installing AlphaRPC and Composer</a></li><li><a href="#Starting-AlphaRPC">Starting AlphaRPC</a></li><li><a href="#First-request">First request</a></li><li><a href="#Done-">Done!</a></li></ul></li></ul>
+                <ul class="nav"><li><a href="#Getting-Started">Getting Started</a><ul class="nav"><li><a href="#Installing-ZeroMQ-and-php-zmq">Installing ZeroMQ and php-zmq</a><ul class="nav"><li><a href="#On-Debian-Wheezy">On Debian Wheezy</a></li><li><a href="#On-Ubuntu-14-04">On Ubuntu 14.04</a></li></ul></li><li><a href="#Install-Composer">Install Composer</a></li><li><a href="#Installing-AlphaRPC-and-Composer">Installing AlphaRPC and Composer</a></li><li><a href="#Starting-AlphaRPC">Starting AlphaRPC</a></li><li><a href="#First-request">First request</a></li><li><a href="#Done-">Done!</a></li></ul></li></ul>
             </div>
         </div>
         <div class="col-md-9">
@@ -51,12 +51,20 @@ It uses ZeroMQ to communicate with the different parts.</p>
 <p>To get AlphaRPC working, you first need to install libzmq (the ZeroMQ library) and php-zmq (the PHP extension).
 <code>screen</code> is used to start all the <a href="documentation#handlers">handlers</a> at once.</p>
 
-<h3  id="On-Debian">On Debian</h3>
+<h3  id="On-Debian-Wheezy">On Debian Wheezy</h3>
 
 <pre><code class="bash">sudo apt-get install libzmq-dev php-pear php5-dev screen
 sudo pear channel-discover pear.zero.mq
 sudo pecl install pear.zero.mq/zmq-beta
-sudo echo 'extension=zmq.so' &gt; /etc/php5/conf.d/zmq.ini
+sudo /bin/sh -c 'echo extension=zmq.so &gt; /etc/php5/conf.d/zmq.ini'
+</code></pre>
+
+<h3  id="On-Ubuntu-14-04">On Ubuntu 14.04</h3>
+
+<pre><code class="bash">sudo apt-get install libzmq3-dev libzmq3 php5-dev php-pear pkg-config
+sudo pecl install zmq-beta
+sudo /bin/sh -c 'echo extension=zmq.so &gt; /etc/php5/mods-available/zmq.ini'
+sudo php5enmod zmq
 </code></pre>
 
 <h2  id="Install-Composer">Install Composer</h2>
