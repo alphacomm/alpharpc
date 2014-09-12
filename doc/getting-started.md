@@ -8,13 +8,22 @@ It uses ZeroMQ to communicate with the different parts.
 To get AlphaRPC working, you first need to install libzmq (the ZeroMQ library) and php-zmq (the PHP extension).
 `screen` is used to start all the [handlers](documentation#handlers) at once.
 
-### On Debian
+### On Debian Wheezy
 
 ```bash
 sudo apt-get install libzmq-dev php-pear php5-dev screen
 sudo pear channel-discover pear.zero.mq
 sudo pecl install pear.zero.mq/zmq-beta
-sudo echo 'extension=zmq.so' > /etc/php5/conf.d/zmq.ini
+sudo /bin/sh -c 'echo extension=zmq.so > /etc/php5/conf.d/zmq.ini'
+```
+
+### On Ubuntu 14.04
+
+```bash
+sudo apt-get install libzmq3-dev libzmq3 php5-dev php-pear pkg-config
+sudo pecl install zmq-beta
+sudo /bin/sh -c 'echo extension=zmq.so > /etc/php5/mods-available/zmq.ini'
+sudo php5enmod zmq
 ```
 
 ## Install Composer

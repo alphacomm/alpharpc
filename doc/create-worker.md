@@ -22,7 +22,7 @@ use AlphaRPC\Worker\Runner as WorkerRunner;
 use AlphaRPC\Worker\Service;
 
 $worker = new WorkerRunner(
-    'tcp://127.0.0.1:61002', // Worker Handler address
+    'tcp://127.0.0.1:61003', // Worker Handler address
     './ipc'                  // Writable directory for IPC files.
 );
 
