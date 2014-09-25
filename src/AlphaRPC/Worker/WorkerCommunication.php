@@ -183,9 +183,9 @@ class WorkerCommunication implements LoggerAwareInterface
         $this->workerHandlerStream = $socket->getStream();
         $this->workerHandlerStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
             if (null === $event->getProtocolMessage()) {
-                $that->getLogger()->error('Recieved an unsuported message from worker handler.', array(
-                    'message' => $event->getMessage()->toArray(),
-                ));
+                $message = $event->getMessage();
+
+                $that->getLogger()->error('Non-protocol message detected in worker-handler stream: '.$message);
 
                 return;
             }
@@ -210,9 +210,9 @@ class WorkerCommunication implements LoggerAwareInterface
         $this->serviceStream = $socket->getStream();
         $this->serviceStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
             if (null === $event->getProtocolMessage()) {
-                $that->getLogger()->error('Recieved an unsuported message from worker handler.', array(
-                    'message' => $event->getMessage()->toArray(),
-                ));
+                $message = $event->getMessage();
+
+                $that->getLogger()->error('Non-protocol message detected in service stream: '.$message);
 
                 return;
             }
@@ -263,7 +263,7 @@ class WorkerCommunication implements LoggerAwareInterface
             return;
         }
 
-        $this->getLogger()->error('Unknown worker handler response.');
+        $this->getLogger()->error('Unknown worker-handler response: '.get_class($msg).'.');
     }
 
     /**
@@ -340,7 +340,7 @@ class WorkerCommunication implements LoggerAwareInterface
             return;
         }
 
-        $this->getLogger()->error('Unknown service response.');
+        $this->getLogger()->error('Unknown service response: '.get_class($msg).'.');
     }
 
     /**
