@@ -179,13 +179,19 @@ class WorkerCommunication implements LoggerAwareInterface
         $socket->setId('manager');
         $this->getPoller()->add($socket, ZMQ::POLL_IN);
 
-        $stream = $socket->getStream();
-        $callback = array($this, 'onWorkerHandlerMessage');
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback) {
-            call_user_func($callback, $event->getProtocolMessage());
-        });
+        $that = $this;
+        $this->workerHandlerStream = $socket->getStream();
+        $this->workerHandlerStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
+            if (null === $event->getProtocolMessage()) {
+                $that->getLogger()->error('Recieved an unsuported message from worker handler.', array(
+                    'message' => $event->getMessage()->toArray(),
+                ));
 
-        $this->workerHandlerStream = $stream;
+                return;
+            }
+
+            $that->onWorkerHandlerMessage($event->getProtocolMessage());
+        });
     }
 
     /**
@@ -200,12 +206,19 @@ class WorkerCommunication implements LoggerAwareInterface
         $socket->setId('worker_service');
         $this->getPoller()->add($socket, ZMQ::POLL_IN);
 
-        $stream = $socket->getStream();
-        $callback = array($this, 'onServiceMessage');
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback) {
-            call_user_func($callback, $event->getProtocolMessage());
+        $that = $this;
+        $this->serviceStream = $socket->getStream();
+        $this->serviceStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
+            if (null === $event->getProtocolMessage()) {
+                $that->getLogger()->error('Recieved an unsuported message from worker handler.', array(
+                    'message' => $event->getMessage()->toArray(),
+                ));
+
+                return;
+            }
+
+            $that->onServiceMessage($event->getProtocolMessage());
         });
-        $this->serviceStream = $stream;
     }
 
     /**
