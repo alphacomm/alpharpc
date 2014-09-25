@@ -247,46 +247,64 @@ class WorkerCommunication implements LoggerAwareInterface
 
         if ($msg instanceof Destroy) {
             $this->worker->setState(Worker::INVALID);
-        } elseif ($msg instanceof ExecuteJobRequest) {
-            $this->startJob($msg);
-        } elseif ($msg instanceof HeartbeatResponseWorkerhandler) {
-            switch ($this->worker->getState()) {
-                case Worker::READY:
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::REGISTER:
-                    $this->worker->setState(Worker::READY);
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::RESULT:
-                    $this->worker->cleanup();
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::RESULT_AVAILABLE:
-                    $this->handleResult();
-                    break;
-                case Worker::SHUTDOWN:
-                    $this->worker->setState(Worker::INVALID);
-                    break;
-                case Worker::BUSY:
-                    // Do nothing. Why?
-                    break;
-                default:
-                    $this->getLogger()->error('Invalid worker state for OK status: '.$this->worker->getState().'.');
-            }
-        } elseif ($msg instanceof Message) {
-            $status = $msg->shift();
 
-            $this->getLogger()->debug('Received status from worker handler: '.$status);
-            switch ($status) {
-                case AlphaRPC::STATUS_OK:
-                    $this->workerHandlerReply($msg);
-                    break;
-                default:
-            }
-        } else {
-            $this->getLogger()->error('Unknown response message '.get_class($msg));
+            return;
         }
+
+        if ($msg instanceof ExecuteJobRequest) {
+            $this->startJob($msg);
+
+            return;
+        }
+
+        if ($msg instanceof HeartbeatResponseWorkerhandler) {
+            $this->handleHeartbeatResponse();
+
+            return;
+        }
+
+        $this->getLogger()->error('Unknown worker handler response.');
+    }
+
+    /**
+     * Handles the heartbeat response from the worker handler.
+     */
+    private function handleHeartbeatResponse()
+    {
+        $state = $this->worker->getState();
+        if (Worker::BUSY == $state) {
+            /**
+             * We should only reply in the following cases:
+             * - A heartbeat is about to expire.
+             * - We have a result.
+             */
+            return;
+        }
+
+        if (Worker::RESULT_AVAILABLE == $state) {
+            // A result is available send it to the worker handler.
+            $this->handleResult();
+
+            return;
+        }
+
+        if (in_array($state, array(Worker::READY, Worker::RESULT, Worker::REGISTER))) {
+            // Update the state to ready and forget about the last job.
+            $this->worker->cleanup();
+
+            // Request a new job
+            $this->sendToWorkerHandler(new GetJobRequest());
+
+            return;
+        }
+
+        if (Worker::SHUTDOWN != $state) {
+            // The worker did not request a shutdown, however all other states should be handled at this point.
+            $this->getLogger()->error('Invalid worker state: '.$this->worker->getState().'.');
+        }
+
+        // Worker is completely shutdown, because there is no open connection to the worker handler.
+        $this->worker->setState(Worker::INVALID);
     }
 
     /**
