@@ -114,7 +114,7 @@ class WorkerCommunication implements LoggerAwareInterface
      */
     public function setDelay($delay)
     {
-        if (!ctype_digit((string)$delay)) {
+        if (!ctype_digit((string) $delay)) {
             throw new \InvalidArgumentException('Delay must be a number.');
         }
         $this->delay = $delay;
