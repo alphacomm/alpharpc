@@ -114,7 +114,7 @@ class WorkerCommunication implements LoggerAwareInterface
      */
     public function setDelay($delay)
     {
-        if (!ctype_digit((string)$delay)) {
+        if (!ctype_digit((string) $delay)) {
             throw new \InvalidArgumentException('Delay must be a number.');
         }
         $this->delay = $delay;
@@ -179,13 +179,19 @@ class WorkerCommunication implements LoggerAwareInterface
         $socket->setId('manager');
         $this->getPoller()->add($socket, ZMQ::POLL_IN);
 
-        $stream = $socket->getStream();
-        $callback = array($this, 'onWorkerHandlerMessage');
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback) {
-            call_user_func($callback, $event->getProtocolMessage());
-        });
+        $that = $this;
+        $this->workerHandlerStream = $socket->getStream();
+        $this->workerHandlerStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
+            if (null === $event->getProtocolMessage()) {
+                $message = $event->getMessage();
 
-        $this->workerHandlerStream = $stream;
+                $that->getLogger()->error('Non-protocol message detected in worker-handler stream: '.$message);
+
+                return;
+            }
+
+            $that->onWorkerHandlerMessage($event->getProtocolMessage());
+        });
     }
 
     /**
@@ -200,12 +206,19 @@ class WorkerCommunication implements LoggerAwareInterface
         $socket->setId('worker_service');
         $this->getPoller()->add($socket, ZMQ::POLL_IN);
 
-        $stream = $socket->getStream();
-        $callback = array($this, 'onServiceMessage');
-        $stream->addListener(StreamInterface::MESSAGE, function(MessageEvent $event) use ($callback) {
-            call_user_func($callback, $event->getProtocolMessage());
+        $that = $this;
+        $this->serviceStream = $socket->getStream();
+        $this->serviceStream->addListener(StreamInterface::MESSAGE, function (MessageEvent $event) use ($that) {
+            if (null === $event->getProtocolMessage()) {
+                $message = $event->getMessage();
+
+                $that->getLogger()->error('Non-protocol message detected in service stream: '.$message);
+
+                return;
+            }
+
+            $that->onServiceMessage($event->getProtocolMessage());
         });
-        $this->serviceStream = $stream;
     }
 
     /**
@@ -224,58 +237,80 @@ class WorkerCommunication implements LoggerAwareInterface
 
     /**
      * Handles a Message from the Worker Handler.
+     *
+     * @param MessageInterface $msg
      */
-    public function onWorkerHandlerMessage($msg)
+    public function onWorkerHandlerMessage(MessageInterface $msg)
     {
         $this->workerHandlerReady = true;
         $this->worker->touch();
 
         if ($msg instanceof Destroy) {
             $this->worker->setState(Worker::INVALID);
-        } elseif ($msg instanceof ExecuteJobRequest) {
-            $this->startJob($msg);
-        } elseif ($msg instanceof HeartbeatResponseWorkerhandler) {
-            switch ($this->worker->getState()) {
-                case Worker::READY:
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::REGISTER:
-                    $this->worker->setState(Worker::READY);
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::RESULT:
-                    $this->worker->cleanup();
-                    $this->sendToWorkerHandler(new GetJobRequest());
-                    break;
-                case Worker::RESULT_AVAILABLE:
-                    $this->handleResult();
-                    break;
-                case Worker::SHUTDOWN:
-                    $this->worker->setState(Worker::INVALID);
-                    break;
-                case Worker::BUSY:
-                    // Do nothing. Why?
-                    break;
-                default:
-                    $this->getLogger()->error('Invalid worker state for OK status: '.$this->worker->getState().'.');
-            }
-        } elseif ($msg instanceof Message) {
-            $status = $msg->shift();
 
-            $this->getLogger()->debug('Received status from worker handler: '.$status);
-            switch ($status) {
-                case AlphaRPC::STATUS_OK:
-                    $this->workerHandlerReply($msg);
-                    break;
-                default:
-            }
-        } else {
-            $this->getLogger()->error('Unknown response message '.get_class($msg));
+            return;
         }
+
+        if ($msg instanceof ExecuteJobRequest) {
+            $this->startJob($msg);
+
+            return;
+        }
+
+        if ($msg instanceof HeartbeatResponseWorkerhandler) {
+            $this->handleHeartbeatResponse();
+
+            return;
+        }
+
+        $this->getLogger()->error('Unknown worker-handler response: '.get_class($msg).'.');
+    }
+
+    /**
+     * Handles the heartbeat response from the worker handler.
+     */
+    private function handleHeartbeatResponse()
+    {
+        $state = $this->worker->getState();
+        if (Worker::BUSY == $state) {
+            /**
+             * We should only reply in the following cases:
+             * - A heartbeat is about to expire.
+             * - We have a result.
+             */
+            return;
+        }
+
+        if (Worker::RESULT_AVAILABLE == $state) {
+            // A result is available send it to the worker handler.
+            $this->handleResult();
+
+            return;
+        }
+
+        if (in_array($state, array(Worker::READY, Worker::RESULT, Worker::REGISTER))) {
+            // Update the state to ready and forget about the last job.
+            $this->worker->cleanup();
+
+            // Request a new job
+            $this->sendToWorkerHandler(new GetJobRequest());
+
+            return;
+        }
+
+        if (Worker::SHUTDOWN != $state) {
+            // The worker did not request a shutdown, however all other states should be handled at this point.
+            $this->getLogger()->error('Invalid worker state: '.$this->worker->getState().'.');
+        }
+
+        // Worker is completely shutdown, because there is no open connection to the worker handler.
+        $this->worker->setState(Worker::INVALID);
     }
 
     /**
      * Handles a Message from the Service Handler.
+     *
+     * @param MessageInterface $msg
      */
     public function onServiceMessage(MessageInterface $msg)
     {
@@ -305,7 +340,7 @@ class WorkerCommunication implements LoggerAwareInterface
             return;
         }
 
-        $this->getLogger()->error('Unknown service response.');
+        $this->getLogger()->error('Unknown service response: '.get_class($msg).'.');
     }
 
     /**

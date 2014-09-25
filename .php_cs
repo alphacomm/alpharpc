@@ -29,7 +29,7 @@ class NewLineAfterParamFixer implements FixerInterface
 
     public function getLevel()
     {
-        return FixerInterface::ALL_LEVEL;
+        return FixerInterface::SYMFONY_LEVEL;
     }
 
     public function getPriority()
@@ -88,7 +88,7 @@ class SortUseFixer implements FixerInterface
 
     public function getLevel()
     {
-        return FixerInterface::ALL_LEVEL;
+        return FixerInterface::SYMFONY_LEVEL;
     }
 
     public function getPriority()
@@ -131,4 +131,3 @@ $config->addCustomFixer(new SortUseFixer());
 $config->addCustomFixer(new NewLineAfterParamFixer());
 
 return $config;
-
