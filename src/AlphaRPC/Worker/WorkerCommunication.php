@@ -240,7 +240,7 @@ class WorkerCommunication implements LoggerAwareInterface
      *
      * @param MessageInterface $msg
      */
-    public function onWorkerHandlerMessage($msg)
+    public function onWorkerHandlerMessage(MessageInterface $msg)
     {
         $this->workerHandlerReady = true;
         $this->worker->touch();
