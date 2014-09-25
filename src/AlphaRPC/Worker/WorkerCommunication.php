@@ -224,6 +224,8 @@ class WorkerCommunication implements LoggerAwareInterface
 
     /**
      * Handles a Message from the Worker Handler.
+     *
+     * @param MessageInterface $msg
      */
     public function onWorkerHandlerMessage($msg)
     {
@@ -276,6 +278,8 @@ class WorkerCommunication implements LoggerAwareInterface
 
     /**
      * Handles a Message from the Service Handler.
+     *
+     * @param MessageInterface $msg
      */
     public function onServiceMessage(MessageInterface $msg)
     {
