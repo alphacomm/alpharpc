@@ -15,13 +15,13 @@ namespace AlphaRPC\Client;
 use AlphaRPC\Common\Socket\Socket;
 use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimeoutTimer;
+use AlphaRPC\Exception\RuntimeException;
 use AlphaRPC\Manager\Protocol\QueueStatusRequest;
 use AlphaRPC\Manager\Protocol\QueueStatusResponse;
 use AlphaRPC\Manager\Protocol\WorkerStatusRequest;
 use AlphaRPC\Manager\Protocol\WorkerStatusResponse;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use RuntimeException;
 use ZMQ;
 use ZMQContext;
 

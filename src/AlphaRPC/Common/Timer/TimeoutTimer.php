@@ -8,7 +8,7 @@
 
 namespace AlphaRPC\Common\Timer;
 
-use InvalidArgumentException;
+use AlphaRPC\Exception\InvalidArgumentException;
 
 class TimeoutTimer implements TimerInterface
 {

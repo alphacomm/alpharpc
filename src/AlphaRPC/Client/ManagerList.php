@@ -8,6 +8,8 @@
 
 namespace AlphaRPC\Client;
 
+use AlphaRPC\Exception\InvalidArgumentException;
+
 class ManagerList
 {
     /**
@@ -66,12 +68,12 @@ class ManagerList
      * @param string $manager
      *
      * @return ManagerList
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function add($manager)
     {
         if (!is_string($manager)) {
-            throw new \InvalidArgumentException('ManagerList::add requires $manager to be a string.');
+            throw new InvalidArgumentException('ManagerList::add requires $manager to be a string.');
         }
 
         $this->managerList[$manager] = $manager;
@@ -118,12 +120,12 @@ class ManagerList
      * @param string $manager
      * @param string $flag
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function flag($manager, $flag)
     {
         if (!in_array($flag, array(self::FLAG_AVAILABLE, self::FLAG_UNAVAILABLE))) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Client::flagManager $flag argument must be one of the FLAG_ constants');
         }
 
@@ -146,4 +148,4 @@ class ManagerList
         $this->managerStatus[self::FLAG_AVAILABLE] = $this->managerList;
         $this->managerStatus[self::FLAG_UNAVAILABLE] = array();
     }
-} 
+}

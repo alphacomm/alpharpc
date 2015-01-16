@@ -8,6 +8,7 @@
 
 namespace AlphaRPC\Common\Socket;
 
+use AlphaRPC\Exception\RuntimeException;
 use ReflectionClass;
 use ZMQ;
 use ZMQContext;
@@ -111,12 +112,12 @@ class Factory
      * @param mixed $value
      *
      * @return \AlphaRPC\Common\Socket\Factory
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function addOption($key, $value)
     {
         if (!$this->isOptionKeyValid($key)) {
-            throw new \RuntimeException('Invalid socket option '.$key.'.');
+            throw new RuntimeException('Invalid socket option '.$key.'.');
         }
 
         $this->options[$key] = $value;
@@ -130,7 +131,7 @@ class Factory
      * @param array $options
      *
      * @return \AlphaRPC\Common\Socket\Factory
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function addOptions($options)
     {
@@ -261,7 +262,7 @@ class Factory
      * @param string|array $dsn
      *
      * @return \AlphaRPC\Common\Socket\Factory
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function connect(ZMQSocket $socket, $mode, $dsn)
     {
@@ -281,12 +282,12 @@ class Factory
         }
 
         if (!is_array($dsn)) {
-            throw new \RuntimeException('DSN should be a string or an array.');
+            throw new RuntimeException('DSN should be a string or an array.');
         }
 
         foreach ($dsn as $d) {
             if (!is_string($d)) {
-                throw new \RuntimeException('Non-string in DSN array detected.');
+                throw new RuntimeException('Non-string in DSN array detected.');
             }
             $socket->$func($d);
         }

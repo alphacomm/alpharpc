@@ -12,7 +12,7 @@
 
 namespace AlphaRPC\Common\Protocol\Exception;
 
-use InvalidArgumentException;
+use AlphaRPC\Exception\InvalidArgumentException;
 
 /**
  * Signals an invalid protocol version

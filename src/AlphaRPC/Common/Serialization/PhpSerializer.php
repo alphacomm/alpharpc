@@ -12,6 +12,8 @@
 
 namespace AlphaRPC\Common\Serialization;
 
+use AlphaRPC\Exception\RuntimeException;
+
 /**
  * @author Reen Lokum <reen@alphacomm.nl>
  * @package AlphaRPC
@@ -28,7 +30,7 @@ class PhpSerializer implements SerializerInterface
     {
         $data = @unserialize(base64_decode($dataString));
         if ($data === false && $dataString != 'YjowOw==') {
-            throw new \RuntimeException('Unable to decode: '.$dataString.'.');
+            throw new RuntimeException('Unable to decode: '.$dataString.'.');
         }
 
         return $data;

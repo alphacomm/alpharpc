@@ -12,10 +12,10 @@
 
 namespace AlphaRPC\Common\Socket;
 
+use AlphaRPC\Exception\RuntimeException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use RuntimeException;
 use ZMQ;
 use ZMQPoll;
 use ZMQSocket;
@@ -195,6 +195,7 @@ class Socket extends ZMQSocket implements LoggerAwareInterface
      * @param Message $msg
      *
      * @return Socket
+     * @throws RuntimeException
      */
     public function msend(Message $msg)
     {

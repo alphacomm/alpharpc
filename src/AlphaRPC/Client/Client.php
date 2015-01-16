@@ -26,10 +26,10 @@ use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimeoutTimer;
 use AlphaRPC\Common\Timer\TimerInterface;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
+use AlphaRPC\Exception\RuntimeException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use RuntimeException;
 use ZMQ;
 use ZMQContext;
 
@@ -127,14 +127,14 @@ class Client implements LoggerAwareInterface
      * @param integer $delay
      *
      * @return Client
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function setDelay($delay)
     {
         if (is_string($delay) && ctype_digit($delay)) {
             $delay = (int) $delay;
         } elseif (!is_int($delay)) {
-            throw new \RuntimeException('Delay should be an integer in MS.');
+            throw new RuntimeException('Delay should be an integer in MS.');
         }
 
         $this->delay = $delay;
@@ -192,14 +192,14 @@ class Client implements LoggerAwareInterface
      * @param int $timeout
      *
      * @return Client
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function setTimeout($timeout)
     {
         if (is_string($timeout) && ctype_digit($timeout)) {
             $timeout = (int) $timeout;
         } elseif (!is_int($timeout)) {
-            throw new \RuntimeException('Unable to set timeout.');
+            throw new RuntimeException('Unable to set timeout.');
         }
         $this->timeout = $timeout;
 
@@ -237,12 +237,12 @@ class Client implements LoggerAwareInterface
      * @param string $cache
      *
      * @return Request
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function startRequest($function, array $params = array(), $cache = null)
     {
         if ($cache !== null && !is_string($cache)) {
-            throw new \RuntimeException('$cache is an id for the request and should be a string or null.');
+            throw new RuntimeException('$cache is an id for the request and should be a string or null.');
         }
 
         $request = new Request($function, $params);
@@ -391,7 +391,7 @@ class Client implements LoggerAwareInterface
      * @param boolean                  $waitForResult
      *
      * @return mixed
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function fetchResponse(Request $request, $waitForResult = true)
     {

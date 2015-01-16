@@ -12,11 +12,13 @@
 
 namespace AlphaRPC\Common;
 
+use AlphaRPC\Exception\RuntimeException;
+
 /**
  * @author Reen Lokum <reen@alphacomm.nl>
  * @package AlphaRPC
  * @subpackage Common
  */
-class TimeoutException extends \RuntimeException
+class TimeoutException extends RuntimeException
 {
 }

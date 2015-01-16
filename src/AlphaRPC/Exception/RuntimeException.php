@@ -12,8 +12,6 @@
 
 namespace AlphaRPC\Exception;
 
-use AlphaRPC\Exception\RuntimeException;
-
-class InvalidResponseException extends RuntimeException
+class RuntimeException extends \RuntimeException implements AlphaRPCExceptionInterface
 {
 }
