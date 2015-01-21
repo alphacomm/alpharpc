@@ -2,7 +2,7 @@
 /**
  * This file is part of AlphaRPC (http://alpharpc.net/)
  *
- * @license BSD-3 (please see the LICENSE file distributed with this source code.
+ * @license   BSD-3 (please see the LICENSE file distributed with this source code.
  * @copyright Copyright (c) 2010-2013, Alphacomm Group B.V. (http://www.alphacomm.nl/)
  */
 
@@ -15,6 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PrepareCustomConfig extends Command
 {
+
     /**
      * Path where alpharpc is installed.
      *
@@ -56,7 +57,7 @@ class PrepareCustomConfig extends Command
         $this->getDefinition()
             ->addOption(new InputOption(
                 'custom-resources', 'r', InputOption::VALUE_NONE,
-                'Also define custom resources, logger for example.'));
+                '[DEPRECATED] Also define custom resources, logger for example.'));
     }
 
     /**
@@ -65,11 +66,7 @@ class PrepareCustomConfig extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->copy('alpharpc_config.yml', $output);
-
-        $customResources = $input->getOption('custom-resources');
-        if ($customResources) {
-            $this->copy('alpharpc_resources.yml', $output);
-        }
+        $this->copy('alpharpc_resources.yml', $output);
 
         $output->writeln(array(
             'Done.',
