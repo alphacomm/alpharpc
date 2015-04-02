@@ -12,6 +12,8 @@
 
 namespace AlphaRPC\Manager\WorkerHandler;
 
+use AlphaRPC\Manager\Request;
+
 /**
  * @author Reen Lokum <reen@alphacomm.nl>
  * @package AlphaRPC
