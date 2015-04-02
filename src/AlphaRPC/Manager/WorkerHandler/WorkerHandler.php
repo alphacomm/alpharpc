@@ -77,7 +77,7 @@ class WorkerHandler implements LoggerAwareInterface
 
     /**
      *
-     * @var Request[]
+     * @var Request[][]
      */
     protected $clientRequests = array();
 
@@ -507,7 +507,12 @@ class WorkerHandler implements LoggerAwareInterface
 
     public function addRequest(Request $request)
     {
-        $this->clientRequests[$request->getId()] = $request;
+        $actionName = $request->getActionName();
+        if (!isset($this->clientRequests[$actionName])) {
+            $this->clientRequests[$actionName] = array();
+        }
+        $this->clientRequests[$actionName][] = $request;
+
         $this->getLogger()->info('Received new request '.$request->getId());
 
         return $this;
@@ -519,7 +524,12 @@ class WorkerHandler implements LoggerAwareInterface
      */
     public function getRequestQueue()
     {
-        return $this->clientRequests;
+        $requestQueue = array();
+        foreach ($this->clientRequests as $requests) {
+            $requestQueue = array_merge($requestQueue, $requests);
+        }
+
+        return $requestQueue;
     }
 
     /**
@@ -529,37 +539,10 @@ class WorkerHandler implements LoggerAwareInterface
      */
     protected function handleRequests()
     {
-        /* @var $request Request */
-        foreach ($this->clientRequests as $requestId => $request) {
-            $actionName = $request->getActionName();
-            if (isset($this->notAvailable[$actionName])) {
-                continue;
-            }
+        $actions = array_keys($this->clientRequests);
 
-            $action = $this->getActionName($actionName);
-            $worker  = $action->fetchWaitingWorker();
-
-            // No workers available for this request.
-            if ($worker === null) {
-                $this->notAvailable[$actionName] = true;
-                $totalWorkers                     = $action->countWorkers();
-                if ($totalWorkers > 0) {
-                    $this->getLogger()->debug(
-                        'All workers ('.$totalWorkers.') for'
-                        .' action: "'.$actionName.'" are busy.'
-                    );
-                } else {
-                    $this->getLogger()->notice(
-                        'No workers registered for action '.$actionName.'.'
-                    );
-                }
-                continue;
-            }
-
-            $worker->setRequest($request);
-            unset($this->clientRequests[$requestId]);
-
-            $this->sendRequest($worker, $request);
+        foreach ($actions as $actionName) {
+            $this->dispatchRequestsForAction($actionName);
         }
     }
 
@@ -656,7 +639,7 @@ class WorkerHandler implements LoggerAwareInterface
                         );
                         $this->storage[$request->getId()] = 'STATUS:500:Poison';
                     } else {
-                        array_unshift($this->clientRequests, $request);
+                        array_unshift($this->clientRequests[$request->getActionName()], $request);
                     }
                 }
                 unset($this->workers[$id]);
@@ -692,5 +675,38 @@ class WorkerHandler implements LoggerAwareInterface
         }
 
         return $this->logger;
+    }
+
+    /**
+     * @param string $actionName
+     */
+    private function dispatchRequestsForAction($actionName)
+    {
+        $requests = $this->clientRequests[$actionName];
+        $action = $this->getActionName($actionName);
+
+        $totalWorkers = $action->countWorkers();
+        if ($totalWorkers <= 0) {
+            $this->getLogger()->notice(
+                'No workers registered for action ' . $actionName . '.'
+            );
+            return;
+        }
+
+        foreach ($requests as $index => $request) {
+            $worker = $action->fetchWaitingWorker();
+            if ($worker === null) {
+                $this->getLogger()->debug(
+                    'All workers (' . $totalWorkers . ') for'
+                    . ' action: "' . $actionName . '" are busy.'
+                );
+                return;
+            }
+
+            // A worker is available, send the request.
+            $worker->setRequest($request);
+            $this->sendRequest($worker, $request);
+            unset($this->clientRequests[$actionName][$index]);
+        }
     }
 }
