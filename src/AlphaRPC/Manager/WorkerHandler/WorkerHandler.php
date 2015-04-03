@@ -535,7 +535,15 @@ class WorkerHandler implements LoggerAwareInterface
      */
     protected function handleRequests()
     {
-        $actions = array_keys($this->clientRequests);
+        $actions = array();
+
+        // Get the first request for each action.
+        foreach ($this->clientRequests as $actionName => $requests) {
+            $request = reset($requests);
+            $actions[$actionName] = $request->getActivityAt();
+        }
+
+        asort($actions, SORT_NUMERIC);
 
         foreach ($actions as $actionName) {
             $this->dispatchRequestsForAction($actionName);
