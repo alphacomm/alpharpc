@@ -322,14 +322,8 @@ class WorkerHandler implements LoggerAwareInterface
             $busy[$actionName]++;
         }
 
-        $requestQueue = $this->getRequestQueue();
-        /* @var $request Request */
-        foreach ($requestQueue as $request) {
-            $actionName = $request->getActionName();
-            if (!isset($queue[$actionName])) {
-                $queue[$actionName] = 0;
-            }
-            $queue[$actionName]++;
+        foreach ($this->clientRequests as $actionName => $requests) {
+            $queue[$actionName] = count($requests);
         }
 
         $statusList = array();
@@ -346,7 +340,7 @@ class WorkerHandler implements LoggerAwareInterface
                 'action'    => $actionName,
                 'queue'     => $queue[$actionName],
                 'busy'      => $busy[$actionName],
-                'available' => $action->cleanup()->countWorkers()
+                'available' => $action->countWorkers()
             );
         }
 
