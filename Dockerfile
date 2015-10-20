@@ -17,6 +17,7 @@ RUN apt-get update && \
         curl \
         git \
         libzmq3 \
+        memcached \
         php5-cli \
         php5-curl \
         php5-mcrypt \
