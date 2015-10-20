@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /sbin/setuser alpharpc /var/www/bin/alpharpc-worker-handler
+exec /sbin/setuser alpharpc /home/alpharpc/alpharpc/bin/alpharpc-worker-handler

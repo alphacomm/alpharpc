@@ -31,16 +31,15 @@ RUN curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/php-zmq/php5-zmq_1.
 RUN curl https://getcomposer.org/composer.phar -o /usr/local/bin/composer && \
     chmod +x /usr/local/bin/composer
 
-WORKDIR /var/www
+# Add user alpharpc and change workdir
+RUN /usr/sbin/useradd -m alpharpc
+WORKDIR /home/alpharpc/alpharpc
 
-# Make sure nginx and php-fpm are started
+# Make sure AlphaRPC starts
 COPY docker/services/ /etc/service/
-
-# Add user alparpc
-RUN /usr/sbin/useradd -m alpharpc && chown -R alpharpc:alpharpc /var/www
 
 RUN git clone https://github.com/alphacomm/alpharpc.git . && composer install --no-dev --optimize-autoloader && chown -R alpharpc:alpharpc .
 
-COPY docker/config /var/www/app/config
+COPY docker/config /home/alpharpc/alpharpc/app/config
 
 EXPOSE 61002 61003
