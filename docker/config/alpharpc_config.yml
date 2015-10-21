@@ -1,0 +1,15 @@
+parameters:
+  logger_client_handler_file: php://stdout
+  logger_client_handler_level: 0
+
+  logger_worker_handler_file: php://stdout
+  logger_worker_handler_level: 0
+
+  client_handler: tcp://0.0.0.0:61002
+  worker_handler: tcp://0.0.0.0:61003
+
+  client_handler_worker_handler: ipc:///home/alpharpc/alpharpc/ipc/alpharpc_client_handler_worker_handler.ipc
+  worker_handler_status:         ipc:///home/alpharpc/alpharpc/ipc/alpharpc_worker_status.ipc
+
+  # This value should be less than or equal to the delay provided to the clients and worker.
+  manager_delay: 1000
