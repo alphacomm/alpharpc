@@ -1,9 +1,9 @@
 parameters:
   logger_client_handler_file: php://stdout
-  logger_client_handler_level: 0
+  logger_client_handler_level: 200
 
   logger_worker_handler_file: php://stdout
-  logger_worker_handler_level: 0
+  logger_worker_handler_level: 200
 
   client_handler: tcp://0.0.0.0:61002
   worker_handler: tcp://0.0.0.0:61003
