@@ -36,7 +36,8 @@ RUN curl https://getcomposer.org/composer.phar -o /usr/local/bin/composer && \
 RUN /usr/sbin/useradd -m alpharpc
 WORKDIR /home/alpharpc/alpharpc
 
-# Make sure AlphaRPC starts
+# Add init files and services
+COPY docker/init/ /etc/my_init.d/
 COPY docker/services/ /etc/service/
 
 RUN git clone https://github.com/alphacomm/alpharpc.git . && composer install --no-dev --optimize-autoloader && chown -R alpharpc:alpharpc .
