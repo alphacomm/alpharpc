@@ -81,6 +81,18 @@ class ManagerList
     }
 
     /**
+     * Return a single manager DSN.
+     *
+     * @return string
+     */
+    public function get()
+    {
+        $managerList = $this->toPrioritizedArray();
+
+        return array_shift($managerList);
+    }
+
+    /**
      * Returns an array or manager dsns, sorted by priority.
      *
      * Available managers get priority over unavailable managers.
