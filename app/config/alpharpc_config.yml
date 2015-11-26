@@ -13,3 +13,6 @@ parameters:
 
   # This value should be less than or equal to the delay provided to the clients and worker.
   manager_delay: 1000
+
+  storage_memcached_host: 127.0.0.1
+  storage_memcached_port: 11211
