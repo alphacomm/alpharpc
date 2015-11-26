@@ -19,5 +19,6 @@ class Application extends SymfonyApplication
         $this->add(new Command\GenerateSupervisorConfig($cwd));
         $this->add(new Command\WorkerStatus($container));
         $this->add(new Command\QueueStatus($container));
+        $this->add(new Command\Client($container));
     }
 }
