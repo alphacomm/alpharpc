@@ -40,7 +40,10 @@ WORKDIR /home/alpharpc/alpharpc
 COPY docker/init/ /etc/my_init.d/
 COPY docker/services/ /etc/service/
 
-RUN git clone https://github.com/alphacomm/alpharpc.git . && composer install --no-dev --optimize-autoloader && chown -R alpharpc:alpharpc .
+RUN git clone https://github.com/alphacomm/alpharpc.git . && \
+    composer install --no-dev --optimize-autoloader && \
+    chown -R alpharpc:alpharpc . && \
+    ln -s /home/alpharpc/alpharpc/bin/alpharpc /usr/bin/alpharpc
 
 COPY docker/config /home/alpharpc/alpharpc/app/config
 
