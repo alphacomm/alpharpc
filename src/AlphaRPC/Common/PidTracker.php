@@ -12,6 +12,8 @@
 
 namespace AlphaRPC\Common;
 
+use AlphaRPC\Exception\RuntimeException;
+
 /**
  * @author Reen Lokum <reen@alphacomm.nl>
  * @package AlphaRPC
@@ -31,17 +33,17 @@ class PidTracker
      *
      * @param callable $callable
      *
-     * @return \PidTracker
-     * @throws \RuntimeException
+     * @return PidTracker
+     * @throws RuntimeException
      */
     public static function fork($callable)
     {
         if (!is_callable($callable)) {
-            throw new \RuntimeException('Callable is not callable.');
+            throw new RuntimeException('Callable is not callable.');
         }
         $pid = pcntl_fork();
         if ($pid < 0) {
-            throw new \RuntimeException('Unable to fork');
+            throw new RuntimeException('Unable to fork');
         }
 
         if ($pid == 0) {
@@ -76,6 +78,7 @@ class PidTracker
      * Checks whether the process is still alive.
      *
      * @return boolean
+     * @throws RuntimeException
      */
     public function isAlive()
     {
@@ -88,7 +91,7 @@ class PidTracker
 
         switch ($pid) {
             case -1:
-                throw new \RuntimeException('pcntl_wait failed.');
+                throw new RuntimeException('pcntl_wait failed.');
 
             case $this->pid:
                 $this->pid = -1;
@@ -109,6 +112,7 @@ class PidTracker
      * This sends a SIGTERM to the process.
      *
      * @return boolean
+     * @throws RuntimeException
      */
     public function kill()
     {
@@ -117,7 +121,7 @@ class PidTracker
         }
 
         if (!posix_kill($this->pid, SIGTERM)) {
-            throw new \RuntimeException('Unable to kill process, PID: '.$this->pid.'.');
+            throw new RuntimeException('Unable to kill process, PID: '.$this->pid.'.');
         }
 
         return;

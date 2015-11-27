@@ -12,7 +12,6 @@ use AlphaRPC\Common\Protocol\Message\MessageInterface;
 use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimerInterface;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
-use RuntimeException;
 
 class ArrayStream extends AbstractStream
 {
@@ -33,7 +32,7 @@ class ArrayStream extends AbstractStream
      * @param TimerInterface $timer
      *
      * @return void
-     * @throws RuntimeException
+     * @throws TimeoutException
      */
     public function handle(TimerInterface $timer = null)
     {
@@ -53,6 +52,8 @@ class ArrayStream extends AbstractStream
     /**
      *
      * @param TimerInterface $timer
+     *
+     * @throws TimeoutException
      */
     public function read(TimerInterface $timer = null)
     {

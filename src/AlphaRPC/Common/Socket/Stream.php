@@ -16,7 +16,6 @@ use AlphaRPC\Common\TimeoutException;
 use AlphaRPC\Common\Timer\TimeoutTimer;
 use AlphaRPC\Common\Timer\TimerInterface;
 use AlphaRPC\Common\Timer\UnlimitedTimer;
-use RuntimeException;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -108,7 +107,7 @@ class Stream implements StreamInterface
      * @param TimerInterface $timer
      *
      * @return void
-     * @throws \RuntimeException
+     * @throws TimeoutException
      */
     public function handle(TimerInterface $timer = null)
     {

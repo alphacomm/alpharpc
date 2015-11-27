@@ -8,6 +8,7 @@
 
 namespace AlphaRPC\Console\Command;
 
+use AlphaRPC\Exception\RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,19 +37,19 @@ class PrepareCustomConfig extends Command
      * @param string $workingDirectory
      * @param string $installPath
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __construct($workingDirectory = null, $installPath = null)
     {
         parent::__construct('prepare-custom-config');
         $this->workingDirectory = $workingDirectory ?: getcwd();
         if (!is_dir($this->workingDirectory)) {
-            throw new \RuntimeException('Working directory does not exist.');
+            throw new RuntimeException('Working directory does not exist.');
         }
 
         $this->installPath = $installPath ?: $this->getInstallPath();
         if (!is_dir($this->installPath)) {
-            throw new \RuntimeException('Install path does not exist.');
+            throw new RuntimeException('Install path does not exist.');
         }
     }
 
@@ -81,7 +82,7 @@ class PrepareCustomConfig extends Command
         $target = $this->workingDirectory.'/'.$file;
 
         if (!file_exists($source)) {
-            throw new \RuntimeException('Unable to export, source "'.$source.'" does not exist.');
+            throw new RuntimeException('Unable to export, source "'.$source.'" does not exist.');
         }
 
         if (file_exists($target)) {
@@ -106,7 +107,7 @@ class PrepareCustomConfig extends Command
         $output->writeln(array('Copying '.$file.' to '.$target));
 
         if (!copy($source, $target)) {
-            throw new \RuntimeException('Unable to copy "'.$file.'" to "'
+            throw new RuntimeException('Unable to copy "'.$file.'" to "'
                 .$target.'".');
         }
     }
@@ -115,7 +116,7 @@ class PrepareCustomConfig extends Command
     {
         $pos = strrpos(__DIR__, '/src/');
         if ($pos === false) {
-            throw new \RuntimeException('Install path could not be located.');
+            throw new RuntimeException('Install path could not be located.');
         }
 
         return substr(__DIR__, 0, $pos);

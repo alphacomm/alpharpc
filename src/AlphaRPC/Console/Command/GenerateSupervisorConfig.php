@@ -8,6 +8,7 @@
 
 namespace AlphaRPC\Console\Command;
 
+use AlphaRPC\Exception\RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,12 +36,12 @@ class GenerateSupervisorConfig extends Command
     {
         $this->workingDirectory = $workingDirectory ?: getcwd();
         if (!is_dir($this->workingDirectory)) {
-            throw new \RuntimeException('Working directory does not exist.');
+            throw new RuntimeException('Working directory does not exist.');
         }
 
         $this->installPath = $installPath ?: $this->getInstallPath();
         if (!is_dir($this->installPath)) {
-            throw new \RuntimeException('Install path does not exist.');
+            throw new RuntimeException('Install path does not exist.');
         }
 
         parent::__construct('generate-supervisor-config');
@@ -120,7 +121,7 @@ programs = {$group}_clienthandler, {$group}_workerhandler
 TPL;
 
         if (!file_put_contents($outputFile, $template)) {
-            throw new \RuntimeException('Unable to write to: '.$outputFile);
+            throw new RuntimeException('Unable to write to: '.$outputFile);
         }
 
         $output->writeln(array(
@@ -144,7 +145,7 @@ TPL;
             }
         }
         if ($phpPath === null) {
-            throw new \RuntimeException('PHP binary could not be found.');
+            throw new RuntimeException('PHP binary could not be found.');
         }
 
         return $phpPath;
@@ -154,7 +155,7 @@ TPL;
     {
         $pos = strrpos(__DIR__, '/src/');
         if ($pos === false) {
-            throw new \RuntimeException('Install path could not be located.');
+            throw new RuntimeException('Install path could not be located.');
         }
 
         return substr(__DIR__, 0, $pos);

@@ -12,6 +12,8 @@
 
 namespace AlphaRPC\Common\Scheduler;
 
+use AlphaRPC\Exception\RuntimeException;
+use AlphaRPC\Exception\InvalidArgumentException;
 use Cron\CronExpression;
 
 /**
@@ -55,12 +57,12 @@ class Schedule
      * @param string|\Cron\CronExpression $expression
      * @param callable                    $task
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __construct($name, $expression, $task)
     {
         if (!class_exists('Cron\CronExpression')) {
-            throw new \RuntimeException('Missing dependency. Add "mtdowling/cron-expression" to composer.json.');
+            throw new RuntimeException('Missing dependency. Add "mtdowling/cron-expression" to composer.json.');
         }
         $this->setName($name);
         $this->setExpression($expression);
@@ -72,12 +74,12 @@ class Schedule
      *
      * @param string $name
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setName($name)
     {
         if (!is_scalar($name)) {
-            throw new \InvalidArgumentException('Schedule name must be a string.');
+            throw new InvalidArgumentException('Schedule name must be a string.');
         }
         $this->name = (string) $name;
     }
@@ -107,14 +109,14 @@ class Schedule
      *
      * @param string|\Cron\CronExpression $expression
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setExpression($expression)
     {
         if (is_string($expression)) {
             $expression = CronExpression::factory($expression);
         } elseif (!$expression instanceof CronExpression) {
-            throw new \InvalidArgumentException('Expression should be a string or an instanceof CronExpression.');
+            throw new InvalidArgumentException('Expression should be a string or an instanceof CronExpression.');
         }
         $this->cronExpression = $expression;
     }
@@ -134,12 +136,12 @@ class Schedule
      *
      * @param callable $task
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function setTask($task)
     {
         if (!is_callable($task)) {
-            throw new \InvalidArgumentException('Schedule task must be callable.');
+            throw new InvalidArgumentException('Schedule task must be callable.');
         }
         $this->task = $task;
     }

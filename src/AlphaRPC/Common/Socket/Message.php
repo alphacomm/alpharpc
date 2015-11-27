@@ -12,6 +12,8 @@
 
 namespace AlphaRPC\Common\Socket;
 
+use AlphaRPC\Exception\RuntimeException;
+
 /**
  * @author     Reen Lokum <reen@alphacomm.nl>
  * @package    AlphaRPC
@@ -166,14 +168,14 @@ class Message implements \Countable
      * @param array|Message $parts
      *
      * @return Message
-     * @throws \Exception
+     * @throws RuntimeException
      */
     public function append($parts)
     {
         if ($parts instanceof Message) {
             $parts = $parts->toArray();
         } elseif (!is_array($parts)) {
-            throw new \Exception('Trying to append non array ('.gettype($parts).').');
+            throw new RuntimeException('Trying to append non array ('.gettype($parts).').');
         }
         $this->parts = array_merge($this->parts, $parts);
 
@@ -186,14 +188,14 @@ class Message implements \Countable
      * @param array|Message $parts
      *
      * @return Message
-     * @throws \Exception
+     * @throws RuntimeException
      */
     public function prepend($parts)
     {
         if ($parts instanceof Message) {
             $parts = $parts->toArray();
         } elseif (!is_array($parts)) {
-            throw new \Exception('Trying to prepend non array ('.gettype($parts).').');
+            throw new RuntimeException('Trying to prepend non array ('.gettype($parts).').');
         }
 
         $this->parts = array_merge($parts, $this->parts);
