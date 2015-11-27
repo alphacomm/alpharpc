@@ -32,3 +32,6 @@ services:
 
   storage:
     class: AlphaRPC\Manager\Storage\MemcacheStorage
+    arguments:
+     - host: %storage_memcached_host%
+       port: %storage_memcached_port%

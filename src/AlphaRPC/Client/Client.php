@@ -404,7 +404,7 @@ class Client implements LoggerAwareInterface
 
         do {
             try {
-                $response = $this->sendFetchRequest($request->getManager(), $req);
+                $response = $this->sendFetchRequest($this->getManagerForRequest($request), $req);
                 $result = $this->handleFetchResponse($response, $request);
 
                 return $result;
@@ -519,6 +519,25 @@ class Client implements LoggerAwareInterface
         }
 
         return $this->logger;
+    }
+
+    /**
+     * Returns a manager for the Request.
+     *
+     * It prefers the manager that is already set, but if it is
+     * not, then it adds a random manager from the manager list.
+     *
+     * @param Request $request
+     *
+     * @return string
+     */
+    private function getManagerForRequest(Request $request)
+    {
+        if (!$request->getManager()) {
+            $request->setManager($this->managerList->get());
+        }
+
+        return $request->getManager();
     }
 
 }
