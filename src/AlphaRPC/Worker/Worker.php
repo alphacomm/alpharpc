@@ -93,7 +93,13 @@ class Worker implements LoggerAwareInterface
      */
     public function setState($state)
     {
-        $this->getLogger()->debug('Changing state from: '.$this->getState().' to: '.$state.'.');
+        $oldState = $this->getState();
+
+        if ($oldState === $state) {
+            return $this;
+        }
+
+        $this->getLogger()->debug('Changing state from: '.$oldState.' to: '.$state.'.');
         $this->state = $state;
 
         return $this;
