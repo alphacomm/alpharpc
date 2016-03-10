@@ -70,6 +70,8 @@ class Request
         $this->id = $id;
         $this->actionName = $actionName;
         $this->params = $params;
+
+        $this->touch();
     }
 
     public function touch()
