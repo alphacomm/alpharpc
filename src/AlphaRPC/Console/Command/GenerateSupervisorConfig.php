@@ -78,12 +78,6 @@ class GenerateSupervisorConfig extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $group = $input->getArgument('group');
-        if (!preg_match('/^[A-Za-z0-9]+$/', $group)) {
-            $output->writeln(array(
-                '<error>Invalid group, should be alphanumeric</error>',
-            ));
-            exit;
-        }
 
         $outputFile = $input->getOption('output-file');
         if (!$outputFile) {
