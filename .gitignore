@@ -1,8 +1,10 @@
+/.idea
 /nbproject
 /vendor
 /build
 /config/runtime.php
 /config/supervisord.ini
+/app/config/supervisord.ini
 /logs/*.log
 /alpharpc_*.yml
 composer.lock
