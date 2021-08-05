@@ -322,14 +322,8 @@ class WorkerHandler implements LoggerAwareInterface
             $busy[$actionName]++;
         }
 
-        $requestQueue = $this->getRequestQueue();
-        /* @var $request Request */
-        foreach ($requestQueue as $request) {
-            $actionName = $request->getActionName();
-            if (!isset($queue[$actionName])) {
-                $queue[$actionName] = 0;
-            }
-            $queue[$actionName]++;
+        foreach ($this->clientRequests as $actionName => $requests) {
+            $queue[$actionName] = count($requests);
         }
 
         $statusList = array();
@@ -346,7 +340,7 @@ class WorkerHandler implements LoggerAwareInterface
                 'action'    => $actionName,
                 'queue'     => $queue[$actionName],
                 'busy'      => $busy[$actionName],
-                'available' => $action->cleanup()->countWorkers()
+                'available' => $action->countWorkers()
             );
         }
 
@@ -508,10 +502,12 @@ class WorkerHandler implements LoggerAwareInterface
     public function addRequest(Request $request)
     {
         $actionName = $request->getActionName();
+
         if (!isset($this->clientRequests[$actionName])) {
             $this->clientRequests[$actionName] = array();
         }
-        $this->clientRequests[$actionName][] = $request;
+
+        $this->clientRequests[$actionName][$request->getId()] = $request;
 
         $this->getLogger()->info('Received new request '.$request->getId());
 
@@ -539,7 +535,15 @@ class WorkerHandler implements LoggerAwareInterface
      */
     protected function handleRequests()
     {
-        $actions = array_keys($this->clientRequests);
+        $actions = array();
+
+        // Get the first request for each action.
+        foreach ($this->clientRequests as $actionName => $requests) {
+            $request = reset($requests);
+            $actions[$actionName] = $request->getActivityAt();
+        }
+
+        asort($actions, SORT_NUMERIC);
 
         foreach ($actions as $actionName) {
             $this->dispatchRequestsForAction($actionName);
@@ -633,13 +637,17 @@ class WorkerHandler implements LoggerAwareInterface
                 // Worker crashed, add the request in front of the queue.
                 $request = $worker->getRequest();
                 if ($request !== null) {
+                    $actionName = $request->getActionName();
                     if ($request->retry() > 2) {
                         $this->getLogger()->info(
-                            'To many retries for: '.$request->getActionName().' ('.$request->getId().').'
+                            'To many retries for: '.$actionName.' ('.$request->getId().').'
                         );
                         $this->storage[$request->getId()] = 'STATUS:500:Poison';
                     } else {
-                        array_unshift($this->clientRequests[$request->getActionName()], $request);
+                        // Place the current request back at the front of the queue.
+                        $current_requests = $this->clientRequests[$actionName];
+                        $new_requests = array($request->getId() => $request) + $current_requests;
+                        $this->clientRequests[$actionName] = $new_requests;
                     }
                 }
                 unset($this->workers[$id]);
@@ -693,7 +701,7 @@ class WorkerHandler implements LoggerAwareInterface
             return;
         }
 
-        foreach ($requests as $index => $request) {
+        foreach ($requests as $requestId => $request) {
             $worker = $action->fetchWaitingWorker();
             if ($worker === null) {
                 $this->getLogger()->debug(
@@ -706,7 +714,7 @@ class WorkerHandler implements LoggerAwareInterface
             // A worker is available, send the request.
             $worker->setRequest($request);
             $this->sendRequest($worker, $request);
-            unset($this->clientRequests[$actionName][$index]);
+            unset($this->clientRequests[$actionName][$requestId]);
         }
     }
 }
